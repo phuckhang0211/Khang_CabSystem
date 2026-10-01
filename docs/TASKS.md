@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07
-Task kế tiếp    : T08
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08
+Task kế tiếp    : T09
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -68,7 +68,7 @@ Vòng lặp của mỗi phiên:
 - [x] T05 Gateway core (middleware, gRPC client, map lỗi)
 - [x] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
 - [x] T07 Utils bảo mật (crypto, blind index, escapeHtml)
-- [ ] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
+- [x] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - [ ] T09 Auth: OTP (Redis)
 - [ ] T10 Customer: profile (Create/Get/Update)
 - [ ] T11 Auth: RegisterCustomer (gọi Customer)
@@ -217,11 +217,11 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §7.1 (404-422), §8.1 các mục Login, CreateDriverAccount, SetAccountStatus/GetUser (641, 644-645), §3.2 (89-92).
 - **Làm:** `migrations/schema.sql` (bảng `users` + index); `repositories/userRepo.js` (SQL parameterized); `services/authService.js` (Login: tra `email_bidx`/`phone_bidx`, cùng thông điệp lỗi cho sai user/sai mật khẩu, `status != ACTIVE` → 403 `ACCOUNT_NOT_ACTIVE`, JWT HS256 `{sub,role,iat,exp}`, **không refresh**; CreateDriverAccount; SetAccountStatus chỉ `ACTIVE|REJECTED`; GetUser); `grpc/` handlers. Mật khẩu 6..72, bcrypt cost từ env.
 - **Nghiệm thu** (`[gRPC-call]` vào auth-service):
-  - [ ] CreateDriverAccount → `status=PENDING`; Login đúng mật khẩu → `PERMISSION_DENIED` + `error-code=ACCOUNT_NOT_ACTIVE`.
-  - [ ] SetAccountStatus ACTIVE → Login trả `accessToken`, `tokenType=Bearer`, `expiresIn=3600`; token decode có `sub`, `role=DRIVER`, `exp`.
-  - [ ] Sai mật khẩu và email không tồn tại → cùng `UNAUTHENTICATED` + `INVALID_CREDENTIALS`.
-  - [ ] `[psql]` auth-db: `email_enc` bắt đầu `v1:`, `password_hash` bắt đầu `$2`, `email_bidx` dài 64.
-  - [ ] SetAccountStatus với `PENDING` → `INVALID_ARGUMENT`. Gọi không có token nội bộ → `UNAUTHENTICATED`.
+  - [x] CreateDriverAccount → `status=PENDING`; Login đúng mật khẩu → `PERMISSION_DENIED` + `error-code=ACCOUNT_NOT_ACTIVE`.
+  - [x] SetAccountStatus ACTIVE → Login trả `accessToken`, `tokenType=Bearer`, `expiresIn=3600`; token decode có `sub`, `role=DRIVER`, `exp`.
+  - [x] Sai mật khẩu và email không tồn tại → cùng `UNAUTHENTICATED` + `INVALID_CREDENTIALS`.
+  - [x] `[psql]` auth-db: `email_enc` bắt đầu `v1:`, `password_hash` bắt đầu `$2`, `email_bidx` dài 64.
+  - [x] SetAccountStatus với `PENDING` → `INVALID_ARGUMENT`. Gọi không có token nội bộ → `UNAUTHENTICATED`.
 
 #### T09 - Auth: OTP (Redis)
 - **Đọc:** §8.1 RequestOtp/VerifyOtp (642-643), §7.1 dòng Redis OTP (422), §4.3 nhóm OTP (242-245), §16 mục 9 (1031).
@@ -563,3 +563,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: `node --check` và Compose config sạch; script tạm ngoài repo chạy trong auth-service đạt toàn bộ kiểm tra v1, ciphertext bị sửa, blind index/escapeHtml, và v2 vẫn giải mã ciphertext v1.
 - Lệnh dev đổi tạm: không; khóa V2 ngẫu nhiên chỉ truyền cho một lệnh `docker compose exec`.
 - Commit: `T07: Utils bảo mật` (đã commit).
+
+### [2026-10-01 19:55] T08 - Auth users + Login - HOÀN THÀNH
+- Đã làm: schema `users` cùng index; repository SQL có tham số; Auth gRPC cho Login/GetUser/SetAccountStatus/CreateDriverAccount; AES-GCM + blind index cho email/phone, bcrypt theo `BCRYPT_COST`, JWT HS256 và biến JWT chỉ trong auth-service Compose.
+- Nghiệm thu: tạo Driver `PENDING` bị chặn login; ACTIVE trả Bearer JWT 3600 giây với `sub`, `role=DRIVER`, `exp`; hai nhánh credential sai cùng `UNAUTHENTICATED/INVALID_CREDENTIALS`; DB có ciphertext `v1:`, bcrypt `$2`, blind index 64 ký tự; status PENDING và thiếu service token trả đúng lỗi.
+- Lệnh dev đổi tạm: không.
+- Commit: `T08: Auth users + Login`.

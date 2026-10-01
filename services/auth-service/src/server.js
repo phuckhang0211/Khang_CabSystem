@@ -5,6 +5,7 @@ const { loadProto } = require('./utils/proto');
 const { waitForPostgres, runMigrations, closePostgres } = require('./db/pg');
 const { waitForRedis, closeRedis } = require('./db/redis');
 const { createHealthHandler } = require('./grpc/health');
+const { createAuthHandler } = require('./grpc/auth');
 
 const server = new grpc.Server();
 let shuttingDown = false;
@@ -15,7 +16,9 @@ async function start() {
   await runMigrations();
 
   const health = loadProto('health');
+  const auth = loadProto('auth');
   server.addService(health.grpc.health.v1.Health.service, createHealthHandler());
+  server.addService(auth.cab.auth.v1.AuthService.service, createAuthHandler());
   server.bindAsync(`0.0.0.0:${config.grpcPort}`, grpc.ServerCredentials.createInsecure(), (error) => {
     if (error) throw error;
     logger.info('gRPC server listening');

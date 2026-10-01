@@ -6,7 +6,10 @@ const required = [
   'REDIS_URL',
   'ENCRYPTION_KEY_V1',
   'ENCRYPTION_ACTIVE_KEY_ID',
-  'BLIND_INDEX_KEY'
+  'BLIND_INDEX_KEY',
+  'JWT_SECRET',
+  'JWT_EXPIRES_IN_SECONDS',
+  'BCRYPT_COST'
 ];
 
 for (const name of required) {
@@ -27,6 +30,9 @@ module.exports = {
   encryptionKeyV2: process.env.ENCRYPTION_KEY_V2,
   encryptionActiveKeyId: process.env.ENCRYPTION_ACTIVE_KEY_ID,
   blindIndexKey: process.env.BLIND_INDEX_KEY,
+  jwtSecret: process.env.JWT_SECRET,
+  jwtExpiresInSeconds: Number(process.env.JWT_EXPIRES_IN_SECONDS),
+  bcryptCost: Number(process.env.BCRYPT_COST),
   rabbitmqUrl: process.env.RABBITMQ_URL,
   rabbitmqExchange: process.env.RABBITMQ_EXCHANGE,
   logLevel: process.env.LOG_LEVEL || 'info'
