@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05
-Task kế tiếp    : T06
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06
+Task kế tiếp    : T07
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -66,7 +66,7 @@ Vòng lặp của mỗi phiên:
 
 **B. Gateway, Auth, Customer**
 - [x] T05 Gateway core (middleware, gRPC client, map lỗi)
-- [ ] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
+- [x] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
 - [ ] T07 Utils bảo mật (crypto, blind index, escapeHtml)
 - [ ] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - [ ] T09 Auth: OTP (Redis)
@@ -198,10 +198,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §4.4 (294-304), §4.5 (306-307).
 - **Làm:** `GET /health`, `/ready`, `/health/services` ở **cả** `/` và `/api/v1`. `/health/services` + `/ready` kiểm 7 service qua gRPC Health (kèm token), 7 DB bằng **TCP connect** tới `X_DB_ADDR` (timeout ngắn, không credential), Redis `PING`, RabbitMQ mở/đóng connection. Đủ 16 component name như §4.4, có `latencyMs`. Unhealthy → 503 (`/ready` trả `NOT_READY`). Không rate limit.
 - **Nghiệm thu:**
-  - [ ] `/health`, `/ready`, `/health/services` (cả hai prefix) → 200, `/health/services` liệt kê đúng 16 component, tất cả healthy.
-  - [ ] `docker compose stop notify-service` → `/ready` 503 `NOT_READY`, `/health/services` 503 và `notify-service` unhealthy; `docker compose start notify-service` → trở lại 200.
-  - [ ] `docker compose stop notify-db` → component `notify-db` unhealthy; bật lại → healthy.
-  - [ ] Tắt/bật `redis`, `rabbitmq` tương tự (mỗi cái 1 lần).
+  - [x] `/health`, `/ready`, `/health/services` (cả hai prefix) → 200, `/health/services` liệt kê đúng 16 component, tất cả healthy.
+  - [x] `docker compose stop notify-service` → `/ready` 503 `NOT_READY`, `/health/services` 503 và `notify-service` unhealthy; `docker compose start notify-service` → trở lại 200.
+  - [x] `docker compose stop notify-db` → component `notify-db` unhealthy; bật lại → healthy.
+  - [x] Tắt/bật `redis`, `rabbitmq` tương tự (mỗi cái 1 lần).
 
 #### T07 - Utils bảo mật
 - **Đọc:** §3.7 (142-147), §13 hàng TC24 (924).
@@ -544,3 +544,10 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 3/3; 404/JSON hỏng đúng format + correlation header; file test tạm trong Gateway kiểm toàn bộ các cặp mapper §3.5 trả `OK`.
 - Lệnh dev đổi tạm: không.
 - Commit: `T05: Gateway core` (đã commit).
+
+### [2026-10-01 19:10] T06 - Gateway health `/health` `/ready` `/health/services` - HOÀN THÀNH
+- Đã làm: thêm health/readiness cả hai prefix; kiểm 7 gRPC Health, 7 TCP DB, Redis PING, RabbitMQ connect/close; trả đủ 16 component với `latencyMs`.
+- Nghiệm thu: đạt 4/4; đã dừng/bật notify-service, notify-db, redis, rabbitmq theo từng lượt và luôn xác nhận stack 17 container healthy trước lượt tiếp theo.
+- Sửa lỗi phát hiện trong nghiệm thu: `notify-service` từ skeleton T02 exit khi Postgres bị ngắt do Pool thiếu listener `error`; thêm listener chỉ log để service báo unhealthy và tự hồi phục sau DB khởi động lại.
+- Lệnh dev đổi tạm: không.
+- Commit: `T06: Gateway health` (đã commit).

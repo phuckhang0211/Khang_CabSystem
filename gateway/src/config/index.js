@@ -10,7 +10,16 @@ const required = [
   'TRIP_GRPC_ADDR',
   'PAYMENT_GRPC_ADDR',
   'NOTIFY_GRPC_ADDR',
-  'RATE_LIMIT_WINDOW_SECONDS'
+  'RATE_LIMIT_WINDOW_SECONDS',
+  'AUTH_DB_ADDR',
+  'CUSTOMER_DB_ADDR',
+  'DRIVER_DB_ADDR',
+  'BOOKING_DB_ADDR',
+  'TRIP_DB_ADDR',
+  'PAYMENT_DB_ADDR',
+  'NOTIFY_DB_ADDR',
+  'REDIS_URL',
+  'RABBITMQ_URL'
 ];
 
 for (const name of required) {
@@ -35,5 +44,16 @@ module.exports = {
     payment: process.env.PAYMENT_GRPC_ADDR,
     notify: process.env.NOTIFY_GRPC_ADDR
   },
+  databaseAddresses: {
+    auth: process.env.AUTH_DB_ADDR,
+    customer: process.env.CUSTOMER_DB_ADDR,
+    driver: process.env.DRIVER_DB_ADDR,
+    booking: process.env.BOOKING_DB_ADDR,
+    trip: process.env.TRIP_DB_ADDR,
+    payment: process.env.PAYMENT_DB_ADDR,
+    notify: process.env.NOTIFY_DB_ADDR
+  },
+  redisUrl: process.env.REDIS_URL,
+  rabbitmqUrl: process.env.RABBITMQ_URL,
   logLevel: process.env.LOG_LEVEL || 'info'
 };
