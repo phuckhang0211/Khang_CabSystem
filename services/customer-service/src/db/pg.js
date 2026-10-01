@@ -5,6 +5,7 @@ const config = require('../config');
 const logger = require('../utils/logger');
 
 const pool = new Pool({ connectionString: config.databaseUrl });
+pool.on('error', () => logger.warn('Postgres pool error'));
 
 async function waitForPostgres() {
   let lastError;
@@ -31,4 +32,3 @@ async function closePostgres() {
 }
 
 module.exports = { pool, waitForPostgres, runMigrations, closePostgres };
-

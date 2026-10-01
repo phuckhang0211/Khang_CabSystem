@@ -12,6 +12,17 @@ async function connectRabbit() {
     try {
       connection = await amqplib.connect(config.rabbitmqUrl);
       channel = await connection.createChannel();
+      connection.on('error', () => logger.warn('RabbitMQ connection error'));
+      connection.on('close', () => {
+        logger.warn('RabbitMQ connection closed');
+        connection = undefined;
+        channel = undefined;
+      });
+      channel.on('error', () => logger.warn('RabbitMQ channel error'));
+      channel.on('close', () => {
+        logger.warn('RabbitMQ channel closed');
+        channel = undefined;
+      });
       await channel.assertExchange(config.rabbitmqExchange, 'topic', { durable: true });
       return channel;
     } catch (error) {
@@ -61,4 +72,3 @@ async function closeRabbit() {
 }
 
 module.exports = { connectRabbit, publish, consume, closeRabbit };
-

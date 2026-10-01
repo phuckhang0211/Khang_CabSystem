@@ -3,6 +3,7 @@ const config = require('../config');
 const logger = require('../utils/logger');
 
 const redis = new Redis(config.redisUrl, { lazyConnect: true, maxRetriesPerRequest: null });
+redis.on('error', () => logger.warn('Redis connection error'));
 
 async function waitForRedis() {
   let lastError;

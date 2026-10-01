@@ -551,3 +551,9 @@ Vòng lặp của mỗi phiên:
 - Sửa lỗi phát hiện trong nghiệm thu: `notify-service` từ skeleton T02 exit khi Postgres bị ngắt do Pool thiếu listener `error`; thêm listener chỉ log để service báo unhealthy và tự hồi phục sau DB khởi động lại.
 - Lệnh dev đổi tạm: không.
 - Commit: `T06: Gateway health` (đã commit).
+
+### [2026-10-01 19:20] Sửa lỗi xuyên task: pool/rabbit/redis error handler - HOÀN THÀNH
+- Đã làm: bổ sung listener `error` cho PostgreSQL pool của 6 service từ T03; bổ sung listener `error`/`close` cho RabbitMQ connection/channel của booking, driver, trip, payment, notify; bổ sung listener `error` cho Redis của auth và driver.
+- Nghiệm thu: build lại đủ 7 service và `node --check` sạch; dừng riêng `driver-db` rồi `payment-db` 15 giây, service tương ứng vẫn `Up` không restart; sau khi khởi động lại DB, đủ 17 container healthy.
+- Lệnh dev đổi tạm: không.
+- Commit: `fix: error handler kết nối cho mọi service`.
