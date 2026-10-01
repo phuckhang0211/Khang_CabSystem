@@ -61,3 +61,4 @@ async function closeRabbit() {
 }
 
 module.exports = { connectRabbit, publish, consume, closeRabbit };
+

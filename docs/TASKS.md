@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02
-Task kế tiếp    : T03
+Task đã xong    : T00, T01, T02, T03
+Task kế tiếp    : T04
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -61,7 +61,7 @@ Vòng lặp của mỗi phiên:
 - [x] T00 Khung repo, `.gitignore`, `.env`, `.env.example`
 - [x] T01 Proto contracts (9 file)
 - [x] T02 Skeleton service dùng chung (làm mẫu trên auth-service)
-- [ ] T03 Nhân bản skeleton cho 6 service còn lại
+- [x] T03 Nhân bản skeleton cho 6 service còn lại
 - [ ] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
 
 **B. Gateway, Auth, Customer**
@@ -160,9 +160,9 @@ Vòng lặp của mỗi phiên:
   - Health Check mỗi service chỉ kiểm dependency của chính nó.
   - Handler RPC chưa làm trả `UNIMPLEMENTED`.
 - **Nghiệm thu:**
-  - [ ] `for s in customer driver booking trip payment notify; do docker build -t $s-test services/$s-service || echo FAIL $s; done` không FAIL.
-  - [ ] `node --check` toàn bộ `.js` mới.
-  - [ ] `grep -L amqplib services/*/package.json` chỉ ra đúng auth và customer.
+  - [x] `for s in customer driver booking trip payment notify; do docker build -t $s-test services/$s-service || echo FAIL $s; done` không FAIL.
+  - [x] `node --check` toàn bộ `.js` mới.
+  - [x] `grep -L amqplib services/*/package.json` chỉ ra đúng auth và customer.
 
 #### T04 - `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub
 - **Đọc:** §4.1 (157-184), §4.2 (186-201), §4.2.1 (203-221), §2 quy tắc repo (70-73).
@@ -526,3 +526,9 @@ Vòng lặp của mỗi phiên:
 - Helper cho T03: `src/config/index.js`; `src/utils/{logger,errors,grpcAuth,proto}.js`; `src/db/{pg,redis}.js`; `src/events/rabbit.js`; `src/grpc/health.js`; `src/{server,healthcheck}.js`; `migrations/schema.sql`.
 - Lệnh dev đổi tạm: không.
 - Commit: `T02: Skeleton service dùng chung` (đã commit).
+
+### [2026-10-01 18:10] T03 - Nhân bản skeleton cho 6 service còn lại - HOÀN THÀNH
+- Đã làm: tạo skeleton độc lập cho `customer, driver, booking, trip, payment, notify-service`; cấu hình, dependency, health check và dependency runtime đúng từng service. RPC nghiệp vụ hiện trả `UNIMPLEMENTED`.
+- Nghiệm thu: đạt 3/3; `node --check` toàn bộ JS mới sạch, build đủ 6 image thành công, và chỉ `auth-service` cùng `customer-service` không có `amqplib`.
+- Lệnh dev đổi tạm: không.
+- Commit: `T03: Nhân bản skeleton 6 service` (đã commit).
