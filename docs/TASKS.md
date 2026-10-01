@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04
-Task kế tiếp    : T05
+Task đã xong    : T00, T01, T02, T03, T04, T05
+Task kế tiếp    : T06
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -65,7 +65,7 @@ Vòng lặp của mỗi phiên:
 - [x] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
 
 **B. Gateway, Auth, Customer**
-- [ ] T05 Gateway core (middleware, gRPC client, map lỗi)
+- [x] T05 Gateway core (middleware, gRPC client, map lỗi)
 - [ ] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
 - [ ] T07 Utils bảo mật (crypto, blind index, escapeHtml)
 - [ ] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
@@ -190,9 +190,9 @@ Vòng lặp của mỗi phiên:
   - `utils/validate.js` (zod helper, lỗi → 400 `VALIDATION_ERROR`; helper phân trang `page≥1`, `limit≤50`).
   - Mount router rỗng ở `/api/v1`; thứ tự middleware đúng §9.1 (các bước chưa làm chừa chỗ).
 - **Nghiệm thu:**
-  - [ ] `curl -si localhost:3000/api/v1/khong-co` → 404, body `error.code=NOT_FOUND` có `correlationId`, có header `x-correlation-id`.
-  - [ ] `curl -s -X POST localhost:3000/api/v1/auth/login -H 'Content-Type: application/json' -d '{bad'` → 400 `VALIDATION_ERROR`.
-  - [ ] Test bảng map lỗi bằng `node -e` gọi hàm map với các cặp (status, error-code) trong §3.5; mọi dòng đúng HTTP + code.
+  - [x] `curl -si localhost:3000/api/v1/khong-co` → 404, body `error.code=NOT_FOUND` có `correlationId`, có header `x-correlation-id`.
+  - [x] `curl -s -X POST localhost:3000/api/v1/auth/login -H 'Content-Type: application/json' -d '{bad'` → 400 `VALIDATION_ERROR`.
+  - [x] Test bảng map lỗi bằng `node -e` gọi hàm map với các cặp (status, error-code) trong §3.5; mọi dòng đúng HTTP + code.
 
 #### T06 - Gateway health
 - **Đọc:** §4.4 (294-304), §4.5 (306-307).
@@ -538,3 +538,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 6/6; normal mode chỉ mở 3000/15672, debug mode mở 5433-5439/6379 và mọi cổng gRPC vẫn đóng; `auth_db` truy cập được bằng psql.
 - Lệnh dev đổi tạm: không.
 - Commit: `T04: docker compose + debug + gateway stub` (đã commit).
+
+### [2026-10-01 18:45] T05 - Gateway core - HOÀN THÀNH
+- Đã làm: thêm Gateway config, correlation/helmet/JSON parser, response+zod helpers, router rỗng, gRPC client factory với metadata/deadline và mapper lỗi ưu tiên trailer `error-code`.
+- Nghiệm thu: đạt 3/3; 404/JSON hỏng đúng format + correlation header; file test tạm trong Gateway kiểm toàn bộ các cặp mapper §3.5 trả `OK`.
+- Lệnh dev đổi tạm: không.
+- Commit: `T05: Gateway core` (đã commit).
