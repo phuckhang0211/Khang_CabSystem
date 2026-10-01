@@ -3,6 +3,7 @@ const required = [
   'GATEWAY_PORT',
   'GRPC_DEADLINE_MS',
   'INTERNAL_SERVICE_TOKEN',
+  'JWT_SECRET',
   'AUTH_GRPC_ADDR',
   'CUSTOMER_GRPC_ADDR',
   'DRIVER_GRPC_ADDR',
@@ -34,6 +35,7 @@ module.exports = {
   port: Number(process.env.GATEWAY_PORT),
   grpcDeadlineMs: Number(process.env.GRPC_DEADLINE_MS),
   internalServiceToken: process.env.INTERNAL_SERVICE_TOKEN,
+  jwtSecret: process.env.JWT_SECRET,
   rateLimitWindowSeconds: Number(process.env.RATE_LIMIT_WINDOW_SECONDS),
   grpcAddresses: {
     auth: process.env.AUTH_GRPC_ADDR,

@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11
-Task kế tiếp    : T12
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12
+Task kế tiếp    : T13
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu
@@ -72,7 +72,7 @@ Vòng lặp của mỗi phiên:
 - [x] T09 Auth: OTP (Redis)
 - [x] T10 Customer: profile (Create/Get/Update)
 - [x] T11 Auth: RegisterCustomer (gọi Customer)
-- [ ] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
+- [x] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
 - [ ] T13 Gateway: rate limit (TC29)
 
 **C. Driver**
@@ -253,12 +253,12 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §9.2 (751-753), §9.4 các hàng health/auth/customers (761-770), §3.6 (135-136), §3.4 (110-116).
 - **Làm:** `middlewares/auth.js` (`jwt.verify(..., {algorithms:['HS256']})`, thiếu/sai/hết hạn → 401 `INVALID_TOKEN`, gắn `sub/role` vào metadata), `middlewares/rbac.js` (khai báo role theo route), onboardingToken guard (dành cho T19), zod schema; routes+controllers: `POST /auth/register` (201), `/auth/login`, `/auth/otp/request`, `/auth/otp/verify`, `GET/PATCH /customers/me`, `GET /customers/:id`. Endpoint public không gắn `x-user-id`.
 - **Nghiệm thu** (`[curl]`):
-  - [ ] TC09: register → 201 `{data:{userId,status:"ACTIVE"}}`; login được. TC10: login 200 có `accessToken`; sai mật khẩu 401 `INVALID_CREDENTIALS`.
-  - [ ] TC11: `GET /customers/<mình>` 200; customer khác gọi → 403; chưa có token → 401 `INVALID_TOKEN`.
-  - [ ] TC25: login `identifier="' OR 1=1 --"` → 400 hoặc 401, không lộ lỗi DB.
-  - [ ] TC26: `PATCH /customers/me {"displayName":"<script>alert('hack')</script>"}` → trả về dạng escape.
-  - [ ] TC27: sửa payload token (đổi `role`), giữ chữ ký cũ → 401 `INVALID_TOKEN`; token `alg=none` → 401.
-  - [ ] Body sai kiểu/thiếu field → 400 `VALIDATION_ERROR`; `POST /auth/otp/request` lưu `data.otp`, rồi dùng mã đó để `verify` đúng → 200 có `onboardingToken`.
+  - [x] TC09: register → 201 `{data:{userId,status:"ACTIVE"}}`; login được. TC10: login 200 có `accessToken`; sai mật khẩu 401 `INVALID_CREDENTIALS`.
+  - [x] TC11: `GET /customers/<mình>` 200; customer khác gọi → 403; chưa có token → 401 `INVALID_TOKEN`.
+  - [x] TC25: login `identifier="' OR 1=1 --"` → 400 hoặc 401, không lộ lỗi DB.
+  - [x] TC26: `PATCH /customers/me {"displayName":"<script>alert('hack')</script>"}` → trả về dạng escape.
+  - [x] TC27: sửa payload token (đổi `role`), giữ chữ ký cũ → 401 `INVALID_TOKEN`; token `alg=none` → 401.
+  - [x] Body sai kiểu/thiếu field → 400 `VALIDATION_ERROR`; `POST /auth/otp/request` lưu `data.otp`, rồi dùng mã đó để `verify` đúng → 200 có `onboardingToken`.
 
 #### T13 - Gateway: rate limit
 - **Đọc:** §9.3 (755-756), §4.3 nhóm rate limit (255-259), §4.4 dòng không rate limit (304).
@@ -599,3 +599,9 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: Auth kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu.
 - Lệnh dev đổi tạm: không.
 - Commit: `T11: Auth RegisterCustomer`.
+
+### [2026-10-01 21:15] T12 - Gateway JWT + RBAC + route auth/customers - HOÀN THÀNH
+- Đã làm: JWT/RBAC/onboarding guard, schema zod và các route Auth/Customer với metadata gRPC, deadline và mapper lỗi chuẩn.
+- Nghiệm thu: đạt 8/8 gồm TC09-11, TC25-27, body/OTP/onboarding, correlation ID và cleanup; 17 container healthy.
+- Lệnh dev đổi tạm: không.
+- Commit: `T12: Gateway JWT RBAC routes`.
