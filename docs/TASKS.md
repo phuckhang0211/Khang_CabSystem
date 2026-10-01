@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08
-Task kế tiếp    : T09
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09
+Task kế tiếp    : T10
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -69,7 +69,7 @@ Vòng lặp của mỗi phiên:
 - [x] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
 - [x] T07 Utils bảo mật (crypto, blind index, escapeHtml)
 - [x] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
-- [ ] T09 Auth: OTP (Redis)
+- [x] T09 Auth: OTP (Redis)
 - [ ] T10 Customer: profile (Create/Get/Update)
 - [ ] T11 Auth: RegisterCustomer (gọi Customer)
 - [ ] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
@@ -227,10 +227,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.1 RequestOtp/VerifyOtp (642-643), §7.1 dòng Redis OTP (422), §4.3 nhóm OTP (242-245), §16 mục 9 (1031).
 - **Làm:** `RequestOtp{phone}` (HASH `otp:{phoneBidx}` `{otpHash=sha256(OTP_MOCK_CODE),attempts=0,purpose}`, `EXPIRE OTP_TTL_SECONDS`, **không trả OTP**); `VerifyOtp{phone,otp}` (không key / sai → `INVALID_ARGUMENT`+`INVALID_OTP`; sai đủ `OTP_MAX_ATTEMPTS` thì xóa key; đúng → xóa key, trả `onboardingToken` JWT HS256 `{purpose:"DRIVER_ONBOARDING",phone}` hạn `ONBOARDING_TOKEN_EXPIRES_IN_SECONDS`). Validate phone `^\+?[0-9]{8,15}$` sau chuẩn hóa.
 - **Nghiệm thu:**
-  - [ ] RequestOtp xong, `[redis] HGETALL otp:<bidx>` có `otpHash`, `attempts=0`; `TTL` ≤ 300; response không chứa mã OTP.
-  - [ ] VerifyOtp sai → `INVALID_OTP`, `attempts=1`.
-  - [ ] VerifyOtp đúng (`123456`) → trả token; decode có `purpose=DRIVER_ONBOARDING`, `phone` đã chuẩn hóa; key bị xóa.
-  - [ ] VerifyOtp khi không có key → `INVALID_OTP`. Sai đủ 5 lần → key bị xóa.
+  - [x] RequestOtp xong, `[redis] HGETALL otp:<bidx>` có `otpHash`, `attempts=0`; `TTL` ≤ 300; response không chứa mã OTP.
+  - [x] VerifyOtp sai → `INVALID_OTP`, `attempts=1`.
+  - [x] VerifyOtp đúng (`123456`) → trả token; decode có `purpose=DRIVER_ONBOARDING`, `phone` đã chuẩn hóa; key bị xóa.
+  - [x] VerifyOtp khi không có key → `INVALID_OTP`. Sai đủ 5 lần → key bị xóa.
 
 #### T10 - Customer: profile
 - **Đọc:** §7.2 (424-446), §8.2 mục CreateCustomerProfile/GetCustomer/UpdateCustomer (648), §3.7 escapeHtml (145).
@@ -569,3 +569,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: tạo Driver `PENDING` bị chặn login; ACTIVE trả Bearer JWT 3600 giây với `sub`, `role=DRIVER`, `exp`; hai nhánh credential sai cùng `UNAUTHENTICATED/INVALID_CREDENTIALS`; DB có ciphertext `v1:`, bcrypt `$2`, blind index 64 ký tự; status PENDING và thiếu service token trả đúng lỗi.
 - Lệnh dev đổi tạm: không.
 - Commit: `T08: Auth users + Login`.
+
+### [2026-10-01 20:05] T09 - Auth OTP (Redis) - HOÀN THÀNH
+- Đã làm: thêm `otpService` cho RequestOtp/VerifyOtp với Redis HASH, TTL, đếm lần sai, so sánh hash timing-safe, xóa key chống race và onboarding JWT HS256; thêm bốn biến OTP chỉ vào auth-service Compose.
+- Nghiệm thu: đạt 4/4 checklist T09 cùng kiểm tra bổ sung phone không hợp lệ, thiếu service token, TTL không reset, token không có `sub`/`role`, và dọn key Redis cụ thể.
+- Lệnh dev đổi tạm: không.
+- Commit: `T09: Auth OTP (Redis)`.

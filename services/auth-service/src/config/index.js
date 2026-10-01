@@ -19,6 +19,11 @@ for (const name of required) {
   }
 }
 
+function positiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 module.exports = {
   serviceName: 'auth-service',
   databaseUrl: process.env.AUTH_DATABASE_URL,
@@ -33,6 +38,10 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresInSeconds: Number(process.env.JWT_EXPIRES_IN_SECONDS),
   bcryptCost: Number(process.env.BCRYPT_COST),
+  otpMockCode: process.env.OTP_MOCK_CODE || '123456',
+  otpTtlSeconds: positiveInteger(process.env.OTP_TTL_SECONDS, 300),
+  otpMaxAttempts: positiveInteger(process.env.OTP_MAX_ATTEMPTS, 5),
+  onboardingTokenExpiresInSeconds: positiveInteger(process.env.ONBOARDING_TOKEN_EXPIRES_IN_SECONDS, 900),
   rabbitmqUrl: process.env.RABBITMQ_URL,
   rabbitmqExchange: process.env.RABBITMQ_EXCHANGE,
   logLevel: process.env.LOG_LEVEL || 'info'
