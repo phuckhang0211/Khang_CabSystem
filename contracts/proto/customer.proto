@@ -12,7 +12,7 @@ service CustomerService {
   rpc ListReviews(ListReviewsRequest) returns (ListReviewsResponse);
 }
 
-message CustomerProfile { string user_id = 1; string display_name = 2; string created_at = 3; }
+message CustomerProfile { string user_id = 1; string display_name = 2; string created_at = 3; string id = 4; }
 message CreateCustomerProfileRequest { string user_id = 1; string display_name = 2; }
 message GetCustomerRequest { string user_id = 1; }
 message UpdateCustomerRequest { string display_name = 1; }

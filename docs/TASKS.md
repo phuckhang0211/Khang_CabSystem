@@ -9,11 +9,11 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09
-Task kế tiếp    : T10
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10
+Task kế tiếp    : T11
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
-Giả định đã ghi README: (không có)
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10
 ```
 
 ---
@@ -70,7 +70,7 @@ Vòng lặp của mỗi phiên:
 - [x] T07 Utils bảo mật (crypto, blind index, escapeHtml)
 - [x] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - [x] T09 Auth: OTP (Redis)
-- [ ] T10 Customer: profile (Create/Get/Update)
+- [x] T10 Customer: profile (Create/Get/Update)
 - [ ] T11 Auth: RegisterCustomer (gọi Customer)
 - [ ] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
 - [ ] T13 Gateway: rate limit (TC29)
@@ -236,10 +236,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §7.2 (424-446), §8.2 mục CreateCustomerProfile/GetCustomer/UpdateCustomer (648), §3.7 escapeHtml (145).
 - **Làm:** schema `customer_profiles` **và** `reviews` (tạo đủ cả hai bảng); copy `escapeHtml.js`; `CreateCustomerProfile` (idempotent theo `user_id`), `GetCustomer{userId}` (CUSTOMER chỉ xem chính mình; ADMIN xem tất cả; không có → 404), `UpdateCustomer` (chỉ `displayName` của chính mình, `escapeHtml`, 1..120). `CreateReview/ListReviews` để `UNIMPLEMENTED` (làm ở T28).
 - **Nghiệm thu** (`[gRPC-call]` vào customer-service):
-  - [ ] Create 2 lần cùng `userId` → cùng `id`, `[psql]` chỉ 1 dòng.
-  - [ ] GetCustomer với `x-user-id` khác `userId` (role CUSTOMER) → `PERMISSION_DENIED`; role ADMIN → OK; không tồn tại → `NOT_FOUND`.
-  - [ ] Update `displayName="<b>x</b>"` → DB lưu `&lt;b&gt;x&lt;/b&gt;`.
-  - [ ] `[psql]` thấy đủ 2 bảng `customer_profiles`, `reviews`.
+  - [x] Create 2 lần cùng `userId` → cùng `id`, `[psql]` chỉ 1 dòng.
+  - [x] GetCustomer với `x-user-id` khác `userId` (role CUSTOMER) → `PERMISSION_DENIED`; role ADMIN → OK; không tồn tại → `NOT_FOUND`.
+  - [x] Update `displayName="<b>x</b>"` → DB lưu `&lt;b&gt;x&lt;/b&gt;`.
+  - [x] `[psql]` thấy đủ 2 bảng `customer_profiles`, `reviews`.
 
 #### T11 - Auth: RegisterCustomer
 - **Đọc:** §8.1 RegisterCustomer (640), §3.6 dòng chuyển tiếp metadata (140).
@@ -581,3 +581,14 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: RequestOtp nhiều lần trả OTP khác nhau; Redis hash/TTL/attempts đúng, OTP cũ và OTP sai bị từ chối, OTP đúng trả onboarding token rồi xóa key; sai 5 lần xóa key; toàn bộ 17 container healthy.
 - Lệnh dev đổi tạm: không.
 - Commit: `T09-fix: RequestOtp trả OTP`.
+
+### [2026-10-01 20:30] T10 - Customer profile - DỞ DANG
+- Chưa code: phát hiện `contracts/proto/customer.proto` có `CustomerProfile` không chứa `id`, trong khi nghiệm thu yêu cầu hai lần CreateCustomerProfile trả cùng `id`.
+- Cần quyết định: cho phép thêm `id` vào proto, hoặc giữ proto và xác minh tính idempotent bằng DB.
+
+### [2026-10-01 20:45] T10 - Customer profile - HOÀN THÀNH
+- Đã làm: thêm schema `customer_profiles`/`reviews`, `escapeHtml`, Create/Get/Update Customer và `CustomerProfile.id = 4`; CreateReview/ListReviews giữ `UNIMPLEMENTED`.
+- Nghiệm thu: đạt 6/6, gồm Create idempotent cùng `id` và một dòng DB, RBAC/NOT_FOUND, escape/validation, RPC/token và đủ hai bảng; đã xóa dữ liệu thử, 17 container healthy.
+- Giả định / quyết định: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10.
+- Lệnh dev đổi tạm: không.
+- Commit: `T10: Customer profile`.
