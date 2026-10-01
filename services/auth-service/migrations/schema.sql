@@ -1,0 +1,1 @@
+-- Auth service schema is added in T08.

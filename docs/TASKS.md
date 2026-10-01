@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01
-Task kế tiếp    : T02
+Task đã xong    : T00, T01, T02
+Task kế tiếp    : T03
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -60,7 +60,7 @@ Vòng lặp của mỗi phiên:
 **A. Khung & hạ tầng**
 - [x] T00 Khung repo, `.gitignore`, `.env`, `.env.example`
 - [x] T01 Proto contracts (9 file)
-- [ ] T02 Skeleton service dùng chung (làm mẫu trên auth-service)
+- [x] T02 Skeleton service dùng chung (làm mẫu trên auth-service)
 - [ ] T03 Nhân bản skeleton cho 6 service còn lại
 - [ ] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
 
@@ -147,9 +147,9 @@ Vòng lặp của mỗi phiên:
   - `src/db/pg.js` (Pool, retry ~30 lần/2s, `runMigrations()` đọc `migrations/schema.sql`), `src/db/redis.js`, `src/events/rabbit.js` (connect+retry, `publish(routingKey, payload, correlationId)` đúng envelope §6, helper `consume(queue, bindings, handler)` với prefetch 10, manual ack, nack requeue=false).
   - `src/grpc/health.js` (SERVING chỉ khi Postgres `SELECT 1` OK, + Redis/RabbitMQ nếu service dùng), `src/server.js` (retry deps → migrate → listen `X_GRPC_PORT` → start consumer; SIGTERM tắt êm), `src/healthcheck.js` (gọi Health/Check vào chính nó kèm token), `migrations/schema.sql` (tạm là comment).
 - **Nghiệm thu:**
-  - [ ] `node --check` mọi file `.js` của service không lỗi.
-  - [ ] `docker build -t auth-test services/auth-service` thành công.
-  - [ ] Đọc lại: không có URL/port/secret hard-code trong `src/` (`grep -rnE 'localhost|5432|50051' services/auth-service/src` rỗng).
+  - [x] `node --check` mọi file `.js` của service không lỗi.
+  - [x] `docker build -t auth-test services/auth-service` thành công.
+  - [x] Đọc lại: không có URL/port/secret hard-code trong `src/` (`grep -rnE 'localhost|5432|50051' services/auth-service/src` rỗng).
   - Ghi log: danh sách file helper (để T03 nhân bản đúng).
 
 #### T03 - Nhân bản skeleton cho 6 service còn lại
@@ -519,3 +519,10 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 2/2. Docker Desktop daemon và executable không có trên máy Windows; dùng lệnh Node.js tương đương với `@grpc/proto-loader` cài tạm ngoài workspace, cùng `loadSync` và loader options, nhận `OK`; số RPC: Auth 7, Customer 5, Driver 11, Booking 9, Trip 7, Payment 3, Notify 3.
 - Lệnh dev đổi tạm: không.
 - Commit: `T01: Proto contracts` (đã commit).
+
+### [2026-10-01 17:59] T02 - Skeleton service dùng chung - HOÀN THÀNH
+- Đã làm: dựng mẫu `auth-service` gồm Dockerfile, package dependencies, config, PostgreSQL/Redis, gRPC Health, healthcheck, server khởi động/tắt êm, migration placeholder và RabbitMQ helper dùng lazy-load cho T03.
+- Nghiệm thu: đạt 3/3: `node --check` mọi file JS không lỗi; `docker build -t auth-test services/auth-service` thành công; quét `localhost|5432|50051` trong `src/` không có kết quả. Git Bash bị `Bash/Service/CreateInstance/E_ACCESSDENIED`, nên dùng các lệnh PowerShell tương đương; Docker Buildx cần quyền truy cập lock và build thành công.
+- Helper cho T03: `src/config/index.js`; `src/utils/{logger,errors,grpcAuth,proto}.js`; `src/db/{pg,redis}.js`; `src/events/rabbit.js`; `src/grpc/health.js`; `src/{server,healthcheck}.js`; `migrations/schema.sql`.
+- Lệnh dev đổi tạm: không.
+- Commit: `T02: Skeleton service dùng chung` (đã commit).
