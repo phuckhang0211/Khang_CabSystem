@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06
-Task kế tiếp    : T07
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07
+Task kế tiếp    : T08
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -67,7 +67,7 @@ Vòng lặp của mỗi phiên:
 **B. Gateway, Auth, Customer**
 - [x] T05 Gateway core (middleware, gRPC client, map lỗi)
 - [x] T06 Gateway health `/health` `/ready` `/health/services` (TC06)
-- [ ] T07 Utils bảo mật (crypto, blind index, escapeHtml)
+- [x] T07 Utils bảo mật (crypto, blind index, escapeHtml)
 - [ ] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - [ ] T09 Auth: OTP (Redis)
 - [ ] T10 Customer: profile (Create/Get/Update)
@@ -207,11 +207,11 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §3.7 (142-147), §13 hàng TC24 (924).
 - **Làm:** trong `services/auth-service/src/utils/`: `crypto.js` (AES-256-GCM, IV 12 byte, định dạng `v1:<iv_b64>:<tag_b64>:<cipher_b64>`, chọn khóa theo prefix `ENCRYPTION_KEY_V1/V2`, ghi bằng `ENCRYPTION_ACTIVE_KEY_ID`), `blindIndex.js` (HMAC-SHA256 hex 64, chuẩn hóa email/phone/plate/license như §3.7), `escapeHtml.js` (`& < > " '`).
 - **Nghiệm thu** (`node -e` trong container, không commit):
-  - [ ] encrypt→decrypt trả đúng bản rõ; 2 lần encrypt cùng input cho ciphertext khác nhau; bắt đầu bằng `v1:`.
-  - [ ] Sửa 1 ký tự ciphertext → decrypt ném lỗi.
-  - [ ] `blindIndex(' A@B.com ') === blindIndex('a@b.com')`, dài 64 ký tự; phone `+84 90-123` chuẩn hóa bỏ khoảng trắng/dấu `-`.
-  - [ ] `escapeHtml("<script>alert('hack')</script>")` = `&lt;script&gt;alert(&#39;hack&#39;)&lt;/script&gt;`.
-  - [ ] Đặt `ENCRYPTION_KEY_V2` + `ACTIVE_KEY_ID=v2` thử: ghi mới ra `v2:`, vẫn giải mã được bản `v1:`.
+  - [x] encrypt→decrypt trả đúng bản rõ; 2 lần encrypt cùng input cho ciphertext khác nhau; bắt đầu bằng `v1:`.
+  - [x] Sửa 1 ký tự ciphertext → decrypt ném lỗi.
+  - [x] `blindIndex(' A@B.com ') === blindIndex('a@b.com')`, dài 64 ký tự; phone `+84 90-123` chuẩn hóa bỏ khoảng trắng/dấu `-`.
+  - [x] `escapeHtml("<script>alert('hack')</script>")` = `&lt;script&gt;alert(&#39;hack&#39;)&lt;/script&gt;`.
+  - [x] Đặt `ENCRYPTION_KEY_V2` + `ACTIVE_KEY_ID=v2` thử: ghi mới ra `v2:`, vẫn giải mã được bản `v1:`.
 
 #### T08 - Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - **Đọc:** §7.1 (404-422), §8.1 các mục Login, CreateDriverAccount, SetAccountStatus/GetUser (641, 644-645), §3.2 (89-92).
@@ -557,3 +557,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: build lại đủ 7 service và `node --check` sạch; dừng riêng `driver-db` rồi `payment-db` 15 giây, service tương ứng vẫn `Up` không restart; sau khi khởi động lại DB, đủ 17 container healthy.
 - Lệnh dev đổi tạm: không.
 - Commit: `fix: error handler kết nối cho mọi service`.
+
+### [2026-10-01 19:40] T07 - Utils bảo mật - HOÀN THÀNH
+- Đã làm: thêm AES-256-GCM với IV 12 byte và key rotation v1/v2, HMAC-SHA256 blind index, escapeHtml; đưa khóa cần thiết vào auth-service config và Compose environment.
+- Nghiệm thu: `node --check` và Compose config sạch; script tạm ngoài repo chạy trong auth-service đạt toàn bộ kiểm tra v1, ciphertext bị sửa, blind index/escapeHtml, và v2 vẫn giải mã ciphertext v1.
+- Lệnh dev đổi tạm: không; khóa V2 ngẫu nhiên chỉ truyền cho một lệnh `docker compose exec`.
+- Commit: `T07: Utils bảo mật` (đã commit).
