@@ -35,15 +35,16 @@ function otpHash(value) {
 async function requestOtp({ phone }) {
   const normalized = normalizedPhone(phone);
   const key = `otp:${blindIndex(normalized, 'phone')}`;
+  const otp = crypto.randomInt(0, 1000000).toString().padStart(6, '0');
   try {
     await redis.multi()
-      .hset(key, 'otpHash', otpHash(config.otpMockCode), 'attempts', '0', 'purpose', 'DRIVER_ONBOARDING')
+      .hset(key, 'otpHash', otpHash(otp), 'attempts', '0', 'purpose', 'DRIVER_ONBOARDING')
       .expire(key, config.otpTtlSeconds)
       .exec();
   } catch (error) {
     throw unavailableError();
   }
-  return { ok: true };
+  return { ok: true, otp };
 }
 
 function hashMatches(storedHash, submittedOtp) {

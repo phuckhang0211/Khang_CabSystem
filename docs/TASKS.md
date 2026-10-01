@@ -225,11 +225,11 @@ Vòng lặp của mỗi phiên:
 
 #### T09 - Auth: OTP (Redis)
 - **Đọc:** §8.1 RequestOtp/VerifyOtp (642-643), §7.1 dòng Redis OTP (422), §4.3 nhóm OTP (242-245), §16 mục 9 (1031).
-- **Làm:** `RequestOtp{phone}` (HASH `otp:{phoneBidx}` `{otpHash=sha256(OTP_MOCK_CODE),attempts=0,purpose}`, `EXPIRE OTP_TTL_SECONDS`, **không trả OTP**); `VerifyOtp{phone,otp}` (không key / sai → `INVALID_ARGUMENT`+`INVALID_OTP`; sai đủ `OTP_MAX_ATTEMPTS` thì xóa key; đúng → xóa key, trả `onboardingToken` JWT HS256 `{purpose:"DRIVER_ONBOARDING",phone}` hạn `ONBOARDING_TOKEN_EXPIRES_IN_SECONDS`). Validate phone `^\+?[0-9]{8,15}$` sau chuẩn hóa.
+- **Làm:** `RequestOtp{phone}` sinh OTP ngẫu nhiên 6 chữ số, lưu HASH `otp:{phoneBidx}` `{otpHash=sha256(otp),attempts=0,purpose}` với `EXPIRE OTP_TTL_SECONDS`, trả `{ok:true,otp}` để demo; gọi lại sinh mã mới và reset key. `VerifyOtp{phone,otp}` (không key / sai → `INVALID_ARGUMENT`+`INVALID_OTP`; sai đủ `OTP_MAX_ATTEMPTS` thì xóa key; đúng → xóa key, trả `onboardingToken` JWT HS256 `{purpose:"DRIVER_ONBOARDING",phone}` hạn `ONBOARDING_TOKEN_EXPIRES_IN_SECONDS`). Validate phone `^\+?[0-9]{8,15}$` sau chuẩn hóa.
 - **Nghiệm thu:**
-  - [x] RequestOtp xong, `[redis] HGETALL otp:<bidx>` có `otpHash`, `attempts=0`; `TTL` ≤ 300; response không chứa mã OTP.
+  - [x] RequestOtp trả `ok=true` và OTP 6 chữ số; `[redis] HGETALL otp:<bidx>` có `otpHash=sha256(otp)`, `attempts=0`; `TTL` ≤ 300, không lưu OTP rõ; gọi lại trả mã mới.
   - [x] VerifyOtp sai → `INVALID_OTP`, `attempts=1`.
-  - [x] VerifyOtp đúng (`123456`) → trả token; decode có `purpose=DRIVER_ONBOARDING`, `phone` đã chuẩn hóa; key bị xóa.
+  - [x] VerifyOtp đúng với OTP từ response → trả token; decode có `purpose=DRIVER_ONBOARDING`, `phone` đã chuẩn hóa; key bị xóa.
   - [x] VerifyOtp khi không có key → `INVALID_OTP`. Sai đủ 5 lần → key bị xóa.
 
 #### T10 - Customer: profile
@@ -258,7 +258,7 @@ Vòng lặp của mỗi phiên:
   - [ ] TC25: login `identifier="' OR 1=1 --"` → 400 hoặc 401, không lộ lỗi DB.
   - [ ] TC26: `PATCH /customers/me {"displayName":"<script>alert('hack')</script>"}` → trả về dạng escape.
   - [ ] TC27: sửa payload token (đổi `role`), giữ chữ ký cũ → 401 `INVALID_TOKEN`; token `alg=none` → 401.
-  - [ ] Body sai kiểu/thiếu field → 400 `VALIDATION_ERROR`; `POST /auth/otp/request` rồi `verify` đúng → 200 có `onboardingToken`.
+  - [ ] Body sai kiểu/thiếu field → 400 `VALIDATION_ERROR`; `POST /auth/otp/request` lưu `data.otp`, rồi dùng mã đó để `verify` đúng → 200 có `onboardingToken`.
 
 #### T13 - Gateway: rate limit
 - **Đọc:** §9.3 (755-756), §4.3 nhóm rate limit (255-259), §4.4 dòng không rate limit (304).
@@ -322,7 +322,7 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §9.2 dòng onboardingToken (753), §9.4 các hàng drivers/admin (771-779), §5 cuối (358: safe fields).
 - **Làm:** routes: `POST /drivers/applications` (guard onboardingToken `purpose=DRIVER_ONBOARDING`, `body.phone` chuẩn hóa phải khớp `payload.phone` → 400; token thường không dùng được và ngược lại), `GET /admin/driver-applications[/:id]`, `POST .../approve`, `POST .../reject`, `PUT /drivers/me/status`, `PUT /drivers/me/location`, `GET /drivers/nearby` (query zod), `GET /drivers/:id` (**safe fields**: driverId, fullName, workStatus, availability, vehicle{plateNumber,vehicleType,brand,model,color}; không `userId`/`licenseNumber`).
 - **Nghiệm thu** (`[curl]` với seed):
-  - [ ] TC21: request OTP → verify → `POST /drivers/applications` bằng onboardingToken → 201 `PENDING_REVIEW`; dùng token đăng nhập thường ở endpoint này → 401; phone body khác phone token → 400.
+  - [ ] TC21: request OTP (lưu `data.otp`) → verify bằng mã đó → `POST /drivers/applications` bằng onboardingToken → 201 `PENDING_REVIEW`; dùng token đăng nhập thường ở endpoint này → 401; phone body khác phone token → 400.
   - [ ] TC22: admin list (`?status=PENDING_REVIEW`) → có Driver 6 + driver mới; approve/reject đổi trạng thái; customer gọi `/admin/...` → 403. Sau approve, login của driver mới OK.
   - [ ] TC23: driver1 `PUT /drivers/me/status {"status":"OFFLINE"}` OK rồi ONLINE lại; customer gọi → 403 `FORBIDDEN` (TC28) body không có data.
   - [ ] TC12: `GET /drivers/<211>` → 200 chỉ safe fields. TC13: `GET /drivers/nearby?lat=10.762622&lng=106.660172&radiusKm=1` → 4 driver tăng dần; `limit=2&page=2` đúng; `limit=51` → 400.
@@ -575,3 +575,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 4/4 checklist T09 cùng kiểm tra bổ sung phone không hợp lệ, thiếu service token, TTL không reset, token không có `sub`/`role`, và dọn key Redis cụ thể.
 - Lệnh dev đổi tạm: không.
 - Commit: `T09: Auth OTP (Redis)`.
+
+### [2026-10-01 20:20] T09-fix - RequestOtp trả OTP - HOÀN THÀNH
+- Đã làm: thay đổi thiết kế có chủ đích so với SPEC cũ: Auth sinh OTP ngẫu nhiên 6 chữ số, chỉ trả cho client demo và chỉ lưu SHA-256 trong Redis. Đã sửa `otpService`, config/Compose/env, Auth proto, SPEC và TASKS; Gateway/Postman/hướng dẫn/scripts chưa có route hay request OTP để cập nhật.
+- Nghiệm thu: RequestOtp nhiều lần trả OTP khác nhau; Redis hash/TTL/attempts đúng, OTP cũ và OTP sai bị từ chối, OTP đúng trả onboarding token rồi xóa key; sai 5 lần xóa key; toàn bộ 17 container healthy.
+- Lệnh dev đổi tạm: không.
+- Commit: `T09-fix: RequestOtp trả OTP`.

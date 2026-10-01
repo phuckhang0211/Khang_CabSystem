@@ -240,7 +240,6 @@ BLIND_INDEX_KEY=<ngẫu nhiên>
 BCRYPT_COST=10
 
 # --- OTP ---
-OTP_MOCK_CODE=123456
 OTP_TTL_SECONDS=300
 OTP_MAX_ATTEMPTS=5
 
@@ -315,7 +314,7 @@ Package `cab.<service>.v1`; `common.proto` chứa: `Empty`, `Location{lat,lng,ad
 |---|---|---|---|
 | **Auth** | RegisterCustomer | {email,password,displayName,phone?} → {userId,status} | Gateway |
 | | Login | {identifier,password} → {accessToken,tokenType,expiresIn} | Gateway |
-| | RequestOtp | {phone} → {ok} | Gateway |
+| | RequestOtp | {phone} → {ok,otp} | Gateway |
 | | VerifyOtp | {phone,otp} → {onboardingToken} | Gateway |
 | | CreateDriverAccount | {email,password,phone} → {userId,status=PENDING} | Driver |
 | | SetAccountStatus | {userId,status} → {userId,status} | Driver |
@@ -639,7 +638,7 @@ Quy ước: "→ 409" nghĩa là ném gRPC `ABORTED` + `error-code` tương ứn
 ### 8.1 Auth Service
 - **RegisterCustomer**: validate `email` (hợp lệ, ≤255), `password` (**6..72 ký tự**), `displayName` (1..120), `phone?` (sau chuẩn hóa khớp `^\+?[0-9]{8,15}$`). Trùng email/phone (theo blind index) → 409 `ALREADY_EXISTS`. Tạo user `role=CUSTOMER,status=PENDING` (email/phone mã hóa AES-GCM + blind index, password bcrypt) → gọi `Customer.CreateCustomerProfile{userId,displayName}`; thành công → `status=ACTIVE`, trả `{userId,status}`. Customer lỗi → xóa user vừa tạo, trả 503.
 - **Login**: `identifier` chứa `@` → tra `email_bidx`, ngược lại `phone_bidx`. Không thấy user hoặc `bcrypt.compare` sai → 401 `INVALID_CREDENTIALS` (cùng một thông điệp). Đúng mật khẩu nhưng `status != ACTIVE` → 403 `ACCOUNT_NOT_ACTIVE`. Thành công → JWT **HS256** `{sub:userId, role, iat, exp}` ký bằng `JWT_SECRET`; trả `{accessToken, tokenType:"Bearer", expiresIn}`. **Không có refreshToken, không có /auth/refresh.**
-- **RequestOtp{phone}**: lưu Redis `otp:{phoneBidx}` HASH `{otpHash=sha256(OTP_MOCK_CODE), attempts=0, purpose="DRIVER_ONBOARDING"}`, `EXPIRE OTP_TTL_SECONDS`. Không trả mã OTP về client.
+- **RequestOtp{phone}**: sinh OTP ngẫu nhiên 6 chữ số, lưu Redis `otp:{phoneBidx}` HASH `{otpHash=sha256(otp), attempts=0, purpose="DRIVER_ONBOARDING"}`, `EXPIRE OTP_TTL_SECONDS`, rồi trả `{ok:true,otp}` để demo. Redis không lưu OTP rõ; gọi lại sinh mã mới và ghi đè key.
 - **VerifyOtp{phone,otp}**: không có key → 400 `INVALID_OTP`; sai → `attempts+1`, 400 `INVALID_OTP` (đạt `OTP_MAX_ATTEMPTS` thì xóa key); đúng → xóa key, trả `onboardingToken` = JWT HS256 `{purpose:"DRIVER_ONBOARDING", phone:<chuẩn hóa>}` hạn `ONBOARDING_TOKEN_EXPIRES_IN_SECONDS`.
 - **CreateDriverAccount{email,password,phone}** (chỉ Driver service gọi): tạo user `role=DRIVER,status=PENDING`; trùng → 409.
 - **SetAccountStatus{userId,status}**: chỉ nhận `ACTIVE` | `REJECTED`. **GetUser**: trả `{userId,role,status}`.
@@ -763,7 +762,7 @@ Entry point REST duy nhất; verify JWT; RBAC theo endpoint; rate limit; sinh `x
 | GET | /health, /ready, /health/services | Public | (Health) | §4.4 |
 | POST | /auth/register | Public | Auth.RegisterCustomer | 201 `{userId,status}`; 400, 409, 503 |
 | POST | /auth/login | Public | Auth.Login | 200; 400, 401 `INVALID_CREDENTIALS`, 403 `ACCOUNT_NOT_ACTIVE` |
-| POST | /auth/otp/request | Public | Auth.RequestOtp | 200 ack; 400, 429 |
+| POST | /auth/otp/request | Public | Auth.RequestOtp | 200 `{ok,otp}`; 400, 429 |
 | POST | /auth/otp/verify | Public | Auth.VerifyOtp | 200 `{onboardingToken}`; 400 `INVALID_OTP` |
 | GET | /customers/me | CUSTOMER | Customer.GetCustomer | |
 | PATCH | /customers/me | CUSTOMER | Customer.UpdateCustomer | body `{displayName}` |
@@ -975,7 +974,7 @@ Mỗi file (TC01...TC30) gồm: **Mục tiêu**, **Điều kiện trước** (se
 | 18 | Hủy chuyến | /bookings/:id/cancel, /trips/:id/cancel | CANCELED; driver release; 2 bên có notification; không refund |
 | 19 | Thanh toán giả lập | POST /payments/mock/callback | PENDING→COMPLETED; Booking bắt đầu matching; chữ ký sai 400 |
 | 20 | Review | POST /reviews; GET /reviews | rating 1..5 lưu theo trip/customer; review trùng 409 |
-| 21 | Đăng ký Driver OTP | otp request/verify + POST /drivers/applications | `PENDING_REVIEW` |
+| 21 | Đăng ký Driver OTP | otp request trả OTP → verify + POST /drivers/applications | `PENDING_REVIEW` |
 | 22 | Duyệt Driver | admin list/detail/approve/reject | Status đổi; driver nhận DRIVER_APPROVED/REJECTED |
 | 23 | ONLINE/OFFLINE | PUT /drivers/me/status | Đổi được; BUSY → OFFLINE trả 409 `DRIVER_BUSY` |
 | 24 | Encryption at rest | `SELECT` trực tiếp trong `auth-db`/`driver-db` (`docker compose exec auth-db psql ...` hoặc port debug) | password bcrypt; PII là ciphertext `v1:...` |
@@ -1028,7 +1027,7 @@ Các điểm dưới đây nguồn nghiệp vụ chưa nêu rõ; **đã chốt �
 6. **`paidAt` cho `booking.assigned`**: Booking gọi `Payment.GetPayment` lúc accept.
 7. **`UpdateTripLocation` chỉ hợp lệ khi trip `IN_PROGRESS`** (khớp thứ tự smoke test arrive → start → location → complete).
 8. **Booking có `fare <= 0`** (điểm đón ≈ điểm đến) → 400 `INVALID_COORDINATES` (vì Payment yêu cầu amount > 0).
-9. **Onboarding token** là JWT HS256 `{purpose:"DRIVER_ONBOARDING", phone}`; **Auth không trả OTP** về client (OTP mock lấy từ `OTP_MOCK_CODE`).
+9. **Onboarding token** là JWT HS256 `{purpose:"DRIVER_ONBOARDING", phone}`; Auth sinh OTP ngẫu nhiên 6 chữ số và **trả OTP về client để demo**.
 10. **Account chưa ACTIVE** (driver PENDING/REJECTED) login đúng mật khẩu → 403 `ACCOUNT_NOT_ACTIVE`.
 11. **Health DB của Gateway**: do mỗi DB là container riêng, Gateway kiểm tra bằng kết nối TCP tới `X_DB_ADDR` (không credential); `SELECT 1` do gRPC Health của từng service thực hiện.
 12. **Migration** là `migrations/schema.sql` idempotent chạy khi service khởi động (không dùng thư viện migration).
