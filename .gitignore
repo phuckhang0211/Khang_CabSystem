@@ -1,0 +1,10 @@
+.env
+node_modules/
+dist/
+logs/
+*.log
+*.pem
+*.key
+*-db-data/
+redis-data/
+rabbitmq-data/
