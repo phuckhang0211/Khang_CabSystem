@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03
-Task kế tiếp    : T04
+Task đã xong    : T00, T01, T02, T03, T04
+Task kế tiếp    : T05
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -62,7 +62,7 @@ Vòng lặp của mỗi phiên:
 - [x] T01 Proto contracts (9 file)
 - [x] T02 Skeleton service dùng chung (làm mẫu trên auth-service)
 - [x] T03 Nhân bản skeleton cho 6 service còn lại
-- [ ] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
+- [x] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
 
 **B. Gateway, Auth, Customer**
 - [ ] T05 Gateway core (middleware, gRPC client, map lỗi)
@@ -171,12 +171,12 @@ Vòng lặp của mỗi phiên:
   - `docker-compose.yml`: đủ **17 container**; 7 Postgres (`postgres:16-alpine`, tự tạo DB/user bằng `POSTGRES_*`, volume riêng, `pg_isready`), redis, rabbitmq (chỉ publish `15672`), 7 service, gateway (`3000:3000`). `depends_on: condition: service_healthy`. Mỗi service chỉ nhận env của chính nó. Mount `./contracts/proto:/app/contracts/proto:ro` cho gateway và 7 service. Không publish port gRPC/DB/Redis.
   - `docker-compose.debug.yml`: chỉ **thêm `ports`** cho 7 DB + redis (`${X_DB_DEBUG_PORT}:5432`, `${REDIS_DEBUG_PORT}:6379`).
 - **Nghiệm thu:**
-  - [ ] `docker compose config -q` OK; `docker compose up -d --build` chạy sạch.
-  - [ ] `docker compose ps` đủ 17 container, tất cả `healthy`/`running` (chờ tối đa ~2 phút).
-  - [ ] `curl -s localhost:3000/health` → `{"status":"healthy"}`.
-  - [ ] Chế độ thường: `nc -zv localhost 5433` và `nc -zv localhost 6379` thất bại; `nc -zv localhost 50051` ... `50057` thất bại; `15672` mở.
-  - [ ] Chế độ debug (`-f docker-compose.yml -f docker-compose.debug.yml up -d`): 5433-5439 và 6379 mở; `50051-50057` vẫn **đóng**.
-  - [ ] `[psql]` vào `auth-db` thấy database `auth_db`.
+  - [x] `docker compose config -q` OK; `docker compose up -d --build` chạy sạch.
+  - [x] `docker compose ps` đủ 17 container, tất cả `healthy`/`running` (chờ tối đa ~2 phút).
+  - [x] `curl -s localhost:3000/health` → `{"status":"healthy"}`.
+  - [x] Chế độ thường: `nc -zv localhost 5433` và `nc -zv localhost 6379` thất bại; `nc -zv localhost 50051` ... `50057` thất bại; `15672` mở.
+  - [x] Chế độ debug (`-f docker-compose.yml -f docker-compose.debug.yml up -d`): 5433-5439 và 6379 mở; `50051-50057` vẫn **đóng**.
+  - [x] `[psql]` vào `auth-db` thấy database `auth_db`.
   - Lưu ý: kể từ đây dùng `docker compose up -d --build <svc>` để rebuild riêng từng service.
 
 ### B. Gateway, Auth, Customer
@@ -532,3 +532,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 3/3; `node --check` toàn bộ JS mới sạch, build đủ 6 image thành công, và chỉ `auth-service` cùng `customer-service` không có `amqplib`.
 - Lệnh dev đổi tạm: không.
 - Commit: `T03: Nhân bản skeleton 6 service` (đã commit).
+
+### [2026-10-01 18:30] T04 - `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub - HOÀN THÀNH
+- Đã làm: thêm compose đủ 17 container, 7 DB volume riêng, healthcheck/dependency đúng service, mount proto read-only; thêm debug override chỉ map DB/Redis; tạo gateway stub `GET /health`.
+- Nghiệm thu: đạt 6/6; normal mode chỉ mở 3000/15672, debug mode mở 5433-5439/6379 và mọi cổng gRPC vẫn đóng; `auth_db` truy cập được bằng psql.
+- Lệnh dev đổi tạm: không.
+- Commit: `T04: docker compose + debug + gateway stub` (đã commit).

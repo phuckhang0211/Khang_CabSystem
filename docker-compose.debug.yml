@@ -1,0 +1,25 @@
+services:
+  auth-db:
+    ports:
+      - "${AUTH_DB_DEBUG_PORT}:5432"
+  customer-db:
+    ports:
+      - "${CUSTOMER_DB_DEBUG_PORT}:5432"
+  driver-db:
+    ports:
+      - "${DRIVER_DB_DEBUG_PORT}:5432"
+  booking-db:
+    ports:
+      - "${BOOKING_DB_DEBUG_PORT}:5432"
+  trip-db:
+    ports:
+      - "${TRIP_DB_DEBUG_PORT}:5432"
+  payment-db:
+    ports:
+      - "${PAYMENT_DB_DEBUG_PORT}:5432"
+  notify-db:
+    ports:
+      - "${NOTIFY_DB_DEBUG_PORT}:5432"
+  redis:
+    ports:
+      - "${REDIS_DEBUG_PORT}:6379"

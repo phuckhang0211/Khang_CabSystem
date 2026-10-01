@@ -1,0 +1,327 @@
+services:
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  customer-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${CUSTOMER_DB_NAME}
+      POSTGRES_USER: ${CUSTOMER_DB_USER}
+      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD}
+    volumes:
+      - customer-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  driver-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DRIVER_DB_NAME}
+      POSTGRES_USER: ${DRIVER_DB_USER}
+      POSTGRES_PASSWORD: ${DRIVER_DB_PASSWORD}
+    volumes:
+      - driver-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  booking-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${BOOKING_DB_NAME}
+      POSTGRES_USER: ${BOOKING_DB_USER}
+      POSTGRES_PASSWORD: ${BOOKING_DB_PASSWORD}
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  trip-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${TRIP_DB_NAME}
+      POSTGRES_USER: ${TRIP_DB_USER}
+      POSTGRES_PASSWORD: ${TRIP_DB_PASSWORD}
+    volumes:
+      - trip-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  payment-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PAYMENT_DB_NAME}
+      POSTGRES_USER: ${PAYMENT_DB_USER}
+      POSTGRES_PASSWORD: ${PAYMENT_DB_PASSWORD}
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  notify-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${NOTIFY_DB_NAME}
+      POSTGRES_USER: ${NOTIFY_DB_USER}
+      POSTGRES_PASSWORD: ${NOTIFY_DB_PASSWORD}
+    volumes:
+      - notify-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  customer-service:
+    build: ./services/customer-service
+    environment:
+      CUSTOMER_DATABASE_URL: ${CUSTOMER_DATABASE_URL}
+      CUSTOMER_GRPC_ADDR: ${CUSTOMER_GRPC_ADDR}
+      CUSTOMER_GRPC_PORT: ${CUSTOMER_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      customer-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      AUTH_DATABASE_URL: ${AUTH_DATABASE_URL}
+      AUTH_GRPC_ADDR: ${AUTH_GRPC_ADDR}
+      AUTH_GRPC_PORT: ${AUTH_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      REDIS_URL: ${REDIS_URL}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  driver-service:
+    build: ./services/driver-service
+    environment:
+      DRIVER_DATABASE_URL: ${DRIVER_DATABASE_URL}
+      DRIVER_GRPC_ADDR: ${DRIVER_GRPC_ADDR}
+      DRIVER_GRPC_PORT: ${DRIVER_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      REDIS_URL: ${REDIS_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      driver-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  payment-service:
+    build: ./services/payment-service
+    environment:
+      PAYMENT_DATABASE_URL: ${PAYMENT_DATABASE_URL}
+      PAYMENT_GRPC_ADDR: ${PAYMENT_GRPC_ADDR}
+      PAYMENT_GRPC_PORT: ${PAYMENT_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  booking-service:
+    build: ./services/booking-service
+    environment:
+      BOOKING_DATABASE_URL: ${BOOKING_DATABASE_URL}
+      BOOKING_GRPC_ADDR: ${BOOKING_GRPC_ADDR}
+      BOOKING_GRPC_PORT: ${BOOKING_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      driver-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  trip-service:
+    build: ./services/trip-service
+    environment:
+      TRIP_DATABASE_URL: ${TRIP_DATABASE_URL}
+      TRIP_GRPC_ADDR: ${TRIP_GRPC_ADDR}
+      TRIP_GRPC_PORT: ${TRIP_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      trip-db:
+        condition: service_healthy
+      driver-service:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  notify-service:
+    build: ./services/notify-service
+    environment:
+      NOTIFY_DATABASE_URL: ${NOTIFY_DATABASE_URL}
+      NOTIFY_GRPC_ADDR: ${NOTIFY_GRPC_ADDR}
+      NOTIFY_GRPC_PORT: ${NOTIFY_GRPC_PORT}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE}
+      LOG_LEVEL: ${LOG_LEVEL}
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      notify-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "src/healthcheck.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  gateway:
+    build: ./gateway
+    environment:
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    volumes:
+      - ./contracts/proto:/app/contracts/proto:ro
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      driver-service:
+        condition: service_healthy
+      booking-service:
+        condition: service_healthy
+      trip-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      notify-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:' + process.env.GATEWAY_PORT + '/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  auth-db-data:
+  customer-db-data:
+  driver-db-data:
+  booking-db-data:
+  trip-db-data:
+  payment-db-data:
+  notify-db-data:
