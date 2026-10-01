@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package cab.notify.v1;
+
+import "common.proto";
+
+service NotifyService {
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  rpc MarkRead(MarkReadRequest) returns (MarkReadResponse);
+  rpc MarkAllRead(cab.common.v1.Empty) returns (MarkAllReadResponse);
+}
+
+message Notification { string notification_id = 1; cab.common.v1.NotificationType type = 2; cab.common.v1.NotificationStatus status = 3; string event_id = 4; string created_at = 5; }
+message ListNotificationsRequest { optional bool unread = 1; int32 page = 2; int32 limit = 3; }
+message ListNotificationsResponse { repeated Notification items = 1; cab.common.v1.PageInfo page_info = 2; }
+message MarkReadRequest { string notification_id = 1; }
+message MarkReadResponse { bool ok = 1; }
+message MarkAllReadResponse { bool ok = 1; }

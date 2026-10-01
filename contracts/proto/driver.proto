@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package cab.driver.v1;
+
+import "common.proto";
+
+service DriverService {
+  rpc GetDriver(GetDriverRequest) returns (DriverInfo);
+  rpc SearchNearbyDrivers(SearchNearbyDriversRequest) returns (SearchNearbyDriversResponse);
+  rpc SubmitApplication(SubmitApplicationRequest) returns (SubmitApplicationResponse);
+  rpc GetApplication(GetApplicationRequest) returns (DriverApplication);
+  rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse);
+  rpc ApproveApplication(ApproveApplicationRequest) returns (ApplicationStatusResponse);
+  rpc RejectApplication(RejectApplicationRequest) returns (ApplicationStatusResponse);
+  rpc SetWorkStatus(SetWorkStatusRequest) returns (SetWorkStatusResponse);
+  rpc UpdateLocation(UpdateLocationRequest) returns (UpdateLocationResponse);
+  rpc TryAssignDriver(TryAssignDriverRequest) returns (TryAssignDriverResponse);
+  rpc ReleaseDriver(ReleaseDriverRequest) returns (ReleaseDriverResponse);
+}
+
+message Vehicle { string id = 1; string plate_number = 2; string vehicle_type = 3; string brand = 4; string model = 5; string color = 6; }
+message DriverInfo { string driver_id = 1; string user_id = 2; string full_name = 3; cab.common.v1.DriverVerificationStatus verification_status = 4; cab.common.v1.WorkStatus work_status = 5; cab.common.v1.Availability availability = 6; Vehicle vehicle = 7; optional cab.common.v1.Location location = 8; }
+message DriverNearby { DriverInfo driver = 1; double distance_meters = 2; }
+message GetDriverRequest { oneof identifier { string driver_id = 1; string user_id = 2; } }
+message SearchNearbyDriversRequest { double lat = 1; double lng = 2; double radius_km = 3; int32 page = 4; int32 limit = 5; optional cab.common.v1.WorkStatus work_status = 6; optional cab.common.v1.Availability availability = 7; }
+message SearchNearbyDriversResponse { repeated DriverNearby items = 1; cab.common.v1.PageInfo page_info = 2; }
+message SubmitApplicationVehicle { string plate_number = 1; string vehicle_type = 2; optional string brand = 3; optional string model = 4; optional string color = 5; }
+message SubmitApplicationRequest { string phone = 1; string email = 2; string password = 3; string full_name = 4; string license_number = 5; SubmitApplicationVehicle vehicle = 6; }
+message SubmitApplicationResponse { string application_id = 1; string driver_id = 2; cab.common.v1.DriverVerificationStatus status = 3; }
+message DriverApplication { string application_id = 1; string driver_id = 2; string phone = 3; string email = 4; string full_name = 5; string license_number = 6; SubmitApplicationVehicle vehicle = 7; cab.common.v1.DriverVerificationStatus status = 8; string created_at = 9; optional string reason = 10; }
+message GetApplicationRequest { string application_id = 1; }
+message ListApplicationsRequest { optional cab.common.v1.DriverVerificationStatus status = 1; int32 page = 2; int32 limit = 3; }
+message ListApplicationsResponse { repeated DriverApplication items = 1; cab.common.v1.PageInfo page_info = 2; }
+message ApproveApplicationRequest { string application_id = 1; }
+message RejectApplicationRequest { string application_id = 1; string reason = 2; }
+message ApplicationStatusResponse { string application_id = 1; cab.common.v1.DriverVerificationStatus status = 2; }
+message SetWorkStatusRequest { cab.common.v1.WorkStatus status = 1; }
+message SetWorkStatusResponse { string driver_id = 1; cab.common.v1.WorkStatus work_status = 2; }
+message UpdateLocationRequest { double lat = 1; double lng = 2; }
+message UpdateLocationResponse { bool ok = 1; }
+message TryAssignDriverRequest { string driver_id = 1; string booking_id = 2; }
+message TryAssignDriverResponse { bool assigned = 1; string driver_user_id = 2; string vehicle_id = 3; }
+message ReleaseDriverRequest { string driver_id = 1; string booking_id = 2; }
+message ReleaseDriverResponse { bool released = 1; }

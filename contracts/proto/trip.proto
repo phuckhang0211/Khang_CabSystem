@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package cab.trip.v1;
+
+import "common.proto";
+
+service TripService {
+  rpc GetTrip(GetTripRequest) returns (Trip);
+  rpc GetTripByBooking(GetTripByBookingRequest) returns (Trip);
+  rpc Arrive(TripActionRequest) returns (Trip);
+  rpc Start(TripActionRequest) returns (Trip);
+  rpc UpdateTripLocation(UpdateTripLocationRequest) returns (Trip);
+  rpc Complete(TripActionRequest) returns (Trip);
+  rpc Cancel(CancelTripRequest) returns (Trip);
+}
+
+message Trip { string trip_id = 1; string booking_id = 2; string customer_id = 3; string driver_id = 4; cab.common.v1.TripStatus status = 5; cab.common.v1.TripPaymentStatus payment_status = 6; string payment_id = 7; string paid_at = 8; int64 fare = 9; string vehicle_id = 10; cab.common.v1.Location pickup = 11; cab.common.v1.Location destination = 12; optional cab.common.v1.Location last_location = 13; optional cab.common.v1.Location end_location = 14; string created_at = 15; }
+message GetTripRequest { string trip_id = 1; }
+message GetTripByBookingRequest { string booking_id = 1; }
+message TripActionRequest { string trip_id = 1; }
+message UpdateTripLocationRequest { string trip_id = 1; double lat = 2; double lng = 3; }
+message CancelTripRequest { string trip_id = 1; string reason = 2; bool confirm = 3; }

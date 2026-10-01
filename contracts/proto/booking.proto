@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package cab.booking.v1;
+
+import "common.proto";
+import "driver.proto";
+
+service BookingService {
+  rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
+  rpc GetBooking(GetBookingRequest) returns (Booking);
+  rpc ListBookings(ListBookingsRequest) returns (ListBookingsResponse);
+  rpc ListMyOffers(cab.common.v1.Empty) returns (ListMyOffersResponse);
+  rpc AcceptOffer(AcceptOfferRequest) returns (AcceptOfferResponse);
+  rpc RejectOffer(RejectOfferRequest) returns (RejectOfferResponse);
+  rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
+  rpc MarkTripCompleted(MarkTripCompletedRequest) returns (MarkTripResponse);
+  rpc MarkTripCanceled(MarkTripCanceledRequest) returns (MarkTripResponse);
+}
+
+message CreateBookingRequest { string idempotency_key = 1; cab.common.v1.Location pickup = 2; cab.common.v1.Location destination = 3; }
+message CreateBookingResponse { string booking_id = 1; cab.common.v1.BookingStatus status = 2; double distance_km = 3; int64 fare = 4; string payment_id = 5; string payment_url = 6; bool replayed = 7; }
+message Booking { string booking_id = 1; string customer_id = 2; cab.common.v1.BookingStatus status = 3; cab.common.v1.Location pickup = 4; cab.common.v1.Location destination = 5; double distance_km = 6; int64 fare = 7; string payment_id = 8; optional cab.driver.v1.DriverInfo driver = 9; string created_at = 10; }
+message GetBookingRequest { string booking_id = 1; }
+message ListBookingsRequest { optional cab.common.v1.BookingStatus status = 1; optional string customer_id = 2; int32 page = 3; int32 limit = 4; }
+message ListBookingsResponse { repeated Booking items = 1; cab.common.v1.PageInfo page_info = 2; }
+message BookingOffer { string offer_id = 1; cab.common.v1.OfferStatus status = 2; Booking booking = 3; }
+message ListMyOffersResponse { repeated BookingOffer items = 1; }
+message AcceptOfferRequest { string offer_id = 1; optional string reason = 2; }
+message AcceptOfferResponse { string booking_id = 1; cab.common.v1.BookingStatus status = 2; }
+message RejectOfferRequest { string offer_id = 1; optional string reason = 2; }
+message RejectOfferResponse { string offer_id = 1; cab.common.v1.OfferStatus status = 2; }
+message CancelBookingRequest { string booking_id = 1; string reason = 2; bool confirm = 3; }
+message CancelBookingResponse { string booking_id = 1; cab.common.v1.BookingStatus status = 2; }
+message MarkTripCompletedRequest { string booking_id = 1; }
+message MarkTripCanceledRequest { string booking_id = 1; optional string reason = 2; }
+message MarkTripResponse { bool ok = 1; }

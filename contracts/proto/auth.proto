@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package cab.auth.v1;
+
+import "common.proto";
+
+service AuthService {
+  rpc RegisterCustomer(RegisterCustomerRequest) returns (RegisterCustomerResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RequestOtp(RequestOtpRequest) returns (RequestOtpResponse);
+  rpc VerifyOtp(VerifyOtpRequest) returns (VerifyOtpResponse);
+  rpc CreateDriverAccount(CreateDriverAccountRequest) returns (CreateDriverAccountResponse);
+  rpc SetAccountStatus(SetAccountStatusRequest) returns (SetAccountStatusResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+message RegisterCustomerRequest { string email = 1; string password = 2; string display_name = 3; optional string phone = 4; }
+message RegisterCustomerResponse { string user_id = 1; cab.common.v1.AccountStatus status = 2; }
+message LoginRequest { string identifier = 1; string password = 2; }
+message LoginResponse { string access_token = 1; string token_type = 2; int64 expires_in = 3; }
+message RequestOtpRequest { string phone = 1; }
+message RequestOtpResponse { bool ok = 1; }
+message VerifyOtpRequest { string phone = 1; string otp = 2; }
+message VerifyOtpResponse { string onboarding_token = 1; }
+message CreateDriverAccountRequest { string email = 1; string password = 2; string phone = 3; }
+message CreateDriverAccountResponse { string user_id = 1; cab.common.v1.AccountStatus status = 2; }
+message SetAccountStatusRequest { string user_id = 1; cab.common.v1.AccountStatus status = 2; }
+message SetAccountStatusResponse { string user_id = 1; cab.common.v1.AccountStatus status = 2; }
+message GetUserRequest { string user_id = 1; }
+message GetUserResponse { string user_id = 1; cab.common.v1.Role role = 2; cab.common.v1.AccountStatus status = 3; }

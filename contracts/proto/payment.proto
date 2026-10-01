@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package cab.payment.v1;
+
+import "common.proto";
+
+service PaymentService {
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
+  rpc GetPayment(GetPaymentRequest) returns (Payment);
+  rpc HandleCallback(HandleCallbackRequest) returns (HandleCallbackResponse);
+}
+
+message CreatePaymentRequest { string booking_id = 1; string customer_id = 2; int64 amount = 3; }
+message CreatePaymentResponse { string payment_id = 1; string payment_url = 2; cab.common.v1.PaymentStatus status = 3; }
+message Payment { string payment_id = 1; string booking_id = 2; string customer_id = 3; int64 amount = 4; cab.common.v1.PaymentStatus status = 5; string provider_txn_id = 6; string paid_at = 7; }
+message GetPaymentRequest { string payment_id = 1; }
+message HandleCallbackRequest { string payment_id = 1; string provider_txn_id = 2; int64 amount = 3; string result = 4; string signature = 5; }
+message HandleCallbackResponse { string payment_id = 1; cab.common.v1.PaymentStatus status = 2; bool replayed = 3; }

@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00
-Task kế tiếp    : T01
+Task đã xong    : T00, T01
+Task kế tiếp    : T02
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
 Giả định đã ghi README: (không có)
@@ -59,7 +59,7 @@ Vòng lặp của mỗi phiên:
 
 **A. Khung & hạ tầng**
 - [x] T00 Khung repo, `.gitignore`, `.env`, `.env.example`
-- [ ] T01 Proto contracts (9 file)
+- [x] T01 Proto contracts (9 file)
 - [ ] T02 Skeleton service dùng chung (làm mẫu trên auth-service)
 - [ ] T03 Nhân bản skeleton cho 6 service còn lại
 - [ ] T04 `docker-compose.yml` + `docker-compose.debug.yml` + gateway stub (TC05, TC08)
@@ -135,8 +135,8 @@ Vòng lặp của mỗi phiên:
   - Đủ **mọi RPC** ở bảng §5 với message request/response đúng field; `DriverInfo`, `DriverNearby`; timestamp là `string`, tiền là `int64`; field `snake_case`.
   - Không có `userId` của người gọi trong request (trừ chỗ bảng ghi rõ, vd `GetDriver{user_id}`, `CreateCustomerProfile{user_id}`, `GetCustomer{user_id}`).
 - **Nghiệm thu:**
-  - [ ] Nạp được toàn bộ proto: `docker run --rm -v "$PWD/contracts:/c" -w /tmp node:20-alpine sh -c "npm i @grpc/proto-loader >/dev/null 2>&1 && node -e \"const l=require('@grpc/proto-loader');for(const f of ['common','health','auth','customer','driver','booking','trip','payment','notify'])l.loadSync('/c/proto/'+f+'.proto',{keepCase:false,longs:Number,enums:String,defaults:true,oneofs:true});console.log('OK')\""` in `OK`.
-  - [ ] Đếm RPC khớp bảng §5: Auth 7, Customer 5, Driver 11, Booking 8 (+MarkTripCompleted/Canceled = 9), Trip 7, Payment 3, Notify 3 (`grep -c 'rpc ' contracts/proto/*.proto`).
+  - [x] Nạp được toàn bộ proto: `docker run --rm -v "$PWD/contracts:/c" -w /tmp node:20-alpine sh -c "npm i @grpc/proto-loader >/dev/null 2>&1 && node -e \"const l=require('@grpc/proto-loader');for(const f of ['common','health','auth','customer','driver','booking','trip','payment','notify'])l.loadSync('/c/proto/'+f+'.proto',{keepCase:false,longs:Number,enums:String,defaults:true,oneofs:true});console.log('OK')\""` in `OK`.
+  - [x] Đếm RPC khớp bảng §5: Auth 7, Customer 5, Driver 11, Booking 8 (+MarkTripCompleted/Canceled = 9), Trip 7, Payment 3, Notify 3 (`grep -c 'rpc ' contracts/proto/*.proto`).
 
 #### T02 - Skeleton service dùng chung (làm mẫu trên `auth-service`)
 - **Đọc:** §3.1 (79-87), §3.6 (135-140), §3.8 (149-151), §4.1 dòng healthcheck (180-182), §4.4 phần gRPC Health (300-301), §6 cách consumer/producer (362-367).
@@ -513,3 +513,9 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: `openssl` không thể chạy trong môi trường Windows này (signal pipe); dùng `crypto.randomBytes` của Node.js để sinh các secret local ngẫu nhiên tương đương.
 - Lệnh dev đổi tạm: không.
 - Commit: chưa commit.
+
+### [2026-10-01 17:50] T01 - Proto contracts - HOÀN THÀNH
+- Đã làm: tạo 9 file `common, health, auth, customer, driver, booking, trip, payment, notify.proto`; khai báo toàn bộ RPC §5, message, enum chuẩn và trường `snake_case`.
+- Nghiệm thu: đạt 2/2. Docker Desktop daemon và executable không có trên máy Windows; dùng lệnh Node.js tương đương với `@grpc/proto-loader` cài tạm ngoài workspace, cùng `loadSync` và loader options, nhận `OK`; số RPC: Auth 7, Customer 5, Driver 11, Booking 9, Trip 7, Payment 3, Notify 3.
+- Lệnh dev đổi tạm: không.
+- Commit: `T01: Proto contracts` (đã commit).

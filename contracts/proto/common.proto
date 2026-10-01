@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package cab.common.v1;
+
+message Empty {}
+
+message Location {
+  double lat = 1;
+  double lng = 2;
+  string address = 3;
+}
+
+message PageRequest {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+message PageInfo {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total = 3;
+  int32 total_pages = 4;
+}
+
+enum AccountStatus { PENDING = 0; ACTIVE = 1; REJECTED = 2; }
+enum Role { CUSTOMER = 0; DRIVER = 1; ADMIN = 2; }
+enum DriverVerificationStatus { PENDING_REVIEW = 0; APPROVED = 1; DRIVER_REJECTED = 2; }
+enum WorkStatus { ONLINE = 0; OFFLINE = 1; }
+enum Availability { AVAILABLE = 0; BUSY = 1; }
+enum BookingStatus { PAYMENT_PENDING = 0; PAYMENT_FAILED = 1; SEARCHING_DRIVER = 2; DRIVER_ASSIGNED = 3; NO_DRIVER_FOUND = 4; BOOKING_CANCELED = 5; BOOKING_COMPLETED = 6; }
+enum OfferStatus { OFFER_PENDING = 0; ACCEPTED = 1; OFFER_REJECTED = 2; SUPERSEDED = 3; }
+enum TripStatus { DRIVER_ARRIVING = 0; DRIVER_ARRIVED = 1; IN_PROGRESS = 2; TRIP_COMPLETED = 3; TRIP_CANCELED = 4; }
+enum TripPaymentStatus { PAID = 0; }
+enum PaymentStatus { PAYMENT_PENDING_STATUS = 0; PAYMENT_COMPLETED = 1; PAYMENT_FAILED_STATUS = 2; }
+enum NotificationStatus { UNREAD = 0; READ = 1; }
+enum NotificationType { BOOKING_OFFER = 0; BOOKING_ASSIGNED = 1; OFFER_CLOSED = 2; BOOKING_CANCELED_NOTIFICATION = 3; TRIP_ARRIVED_NOTIFICATION = 4; TRIP_STARTED = 5; TRIP_COMPLETED_NOTIFICATION = 6; TRIP_CANCELED_NOTIFICATION = 7; PAYMENT_COMPLETED_NOTIFICATION = 8; PAYMENT_FAILED_NOTIFICATION = 9; DRIVER_APPROVED = 10; DRIVER_REJECTED_NOTIFICATION = 11; }
