@@ -41,4 +41,8 @@ async function setAccountStatus(userId, status) {
   return result.rows[0] || null;
 }
 
-module.exports = { findByEmailBlindIndex, findByPhoneBlindIndex, findById, createUser, setAccountStatus };
+async function deleteById(userId) {
+  await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+}
+
+module.exports = { findByEmailBlindIndex, findByPhoneBlindIndex, findById, createUser, setAccountStatus, deleteById };

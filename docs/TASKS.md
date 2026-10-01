@@ -9,11 +9,11 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10
-Task kế tiếp    : T11
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11
+Task kế tiếp    : T12
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
-Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu
 ```
 
 ---
@@ -71,7 +71,7 @@ Vòng lặp của mỗi phiên:
 - [x] T08 Auth: users + Login + GetUser + SetAccountStatus + CreateDriverAccount
 - [x] T09 Auth: OTP (Redis)
 - [x] T10 Customer: profile (Create/Get/Update)
-- [ ] T11 Auth: RegisterCustomer (gọi Customer)
+- [x] T11 Auth: RegisterCustomer (gọi Customer)
 - [ ] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
 - [ ] T13 Gateway: rate limit (TC29)
 
@@ -245,9 +245,9 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.1 RegisterCustomer (640), §3.6 dòng chuyển tiếp metadata (140).
 - **Làm:** `RegisterCustomer{email,password,displayName,phone?}`: validate (email ≤255, password 6..72, displayName 1..120, phone), trùng email/phone theo blind index → `ALREADY_EXISTS`; tạo user `CUSTOMER/PENDING` → gọi `Customer.CreateCustomerProfile{userId,displayName}` (chuyển tiếp `x-correlation-id`, đặt `x-service-token`) → `ACTIVE`; Customer lỗi → **xóa user vừa tạo**, trả `UNAVAILABLE`.
 - **Nghiệm thu** (`[gRPC-call]`):
-  - [ ] Register hợp lệ → `status=ACTIVE`; `[psql]` customer-db có profile với `user_id` = userId trả về.
-  - [ ] Trùng email → `ALREADY_EXISTS`; trùng phone → `ALREADY_EXISTS`; password 5 ký tự → `INVALID_ARGUMENT`.
-  - [ ] `docker compose stop customer-service` → Register → `UNAVAILABLE` và `[psql]` auth-db **không còn** user đó; bật lại service.
+  - [x] Register hợp lệ → `status=ACTIVE`; `[psql]` customer-db có profile với `user_id` = userId trả về.
+  - [x] Trùng email → `ALREADY_EXISTS`; trùng phone → `ALREADY_EXISTS`; password 5 ký tự → `INVALID_ARGUMENT`.
+  - [x] `docker compose stop customer-service` → Register → `UNAVAILABLE` và `[psql]` auth-db **không còn** user đó; bật lại service.
 
 #### T12 - Gateway: JWT + RBAC + zod + route auth/customers
 - **Đọc:** §9.2 (751-753), §9.4 các hàng health/auth/customers (761-770), §3.6 (135-136), §3.4 (110-116).
@@ -592,3 +592,10 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10.
 - Lệnh dev đổi tạm: không.
 - Commit: `T10: Customer profile`.
+
+### [2026-10-01 21:00] T11 - Auth RegisterCustomer - HOÀN THÀNH
+- Đã làm: Customer gRPC client có deadline/metadata correlation, RegisterCustomer tạo CUSTOMER/PENDING, tạo profile rồi chuyển ACTIVE; Customer lỗi thì rollback user theo id.
+- Nghiệm thu: đạt 5/5 — ACTIVE/profile, encryption+bcrypt+Login, duplicate/validation/escape, rollback khi Customer dừng, token; đã dọn dữ liệu thử và 17 container healthy.
+- Giả định / quyết định: Auth kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu.
+- Lệnh dev đổi tạm: không.
+- Commit: `T11: Auth RegisterCustomer`.

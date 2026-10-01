@@ -5,8 +5,11 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { encrypt } = require('../utils/crypto');
 const { blindIndex, normalize } = require('../utils/blindIndex');
+const { escapeHtml } = require('../utils/escapeHtml');
 const { makeError } = require('../utils/errors');
 const userRepo = require('../repositories/userRepo');
+const customerClient = require('../clients/customerClient');
+const logger = require('../utils/logger');
 
 const INVALID_CREDENTIALS_MESSAGE = 'Invalid credentials';
 
@@ -24,6 +27,24 @@ function validatePhone(phone) {
 
 function invalidArgument(message) {
   return makeError(grpc.status.INVALID_ARGUMENT, 'INVALID_ARGUMENT', message);
+}
+
+function validationError(message) {
+  return makeError(grpc.status.INVALID_ARGUMENT, 'VALIDATION_ERROR', message);
+}
+
+function validateCustomerInput({ email, password, displayName, phone, _phone }) {
+  const normalizedEmail = typeof email === 'string' ? normalize(email, 'email') : '';
+  const escapedDisplayName = typeof displayName === 'string' ? escapeHtml(displayName) : '';
+  const hasPhone = _phone === 'phone' || (typeof phone === 'string' && phone.length > 0);
+  const normalizedPhone = hasPhone && typeof phone === 'string' ? normalize(phone, 'phone') : null;
+
+  if (!validateEmail(normalizedEmail) || !validatePassword(password)
+    || escapedDisplayName.length < 1 || escapedDisplayName.length > 120
+    || (hasPhone && !validatePhone(normalizedPhone))) {
+    throw validationError('Invalid customer registration input');
+  }
+  return { normalizedEmail, normalizedPhone, escapedDisplayName };
 }
 
 async function login({ identifier, password }) {
@@ -45,6 +66,48 @@ async function login({ identifier, password }) {
     { algorithm: 'HS256', expiresIn: config.jwtExpiresInSeconds }
   );
   return { accessToken, tokenType: 'Bearer', expiresIn: config.jwtExpiresInSeconds };
+}
+
+async function registerCustomer(request, correlationId) {
+  const { normalizedEmail, normalizedPhone, escapedDisplayName } = validateCustomerInput(request);
+  if (await userRepo.findByEmailBlindIndex(blindIndex(normalizedEmail, 'email'))
+    || (normalizedPhone && await userRepo.findByPhoneBlindIndex(blindIndex(normalizedPhone, 'phone')))) {
+    throw makeError(grpc.status.ALREADY_EXISTS, 'ALREADY_EXISTS', 'Customer already exists');
+  }
+
+  let user;
+  try {
+    user = await userRepo.createUser({
+      id: crypto.randomUUID(),
+      emailEnc: encrypt(normalizedEmail),
+      emailBidx: blindIndex(normalizedEmail, 'email'),
+      phoneEnc: normalizedPhone ? encrypt(normalizedPhone) : null,
+      phoneBidx: normalizedPhone ? blindIndex(normalizedPhone, 'phone') : null,
+      passwordHash: await bcrypt.hash(request.password, config.bcryptCost),
+      role: 'CUSTOMER',
+      status: 'PENDING'
+    });
+  } catch (error) {
+    if (error.code === '23505') throw makeError(grpc.status.ALREADY_EXISTS, 'ALREADY_EXISTS', 'Customer already exists');
+    throw error;
+  }
+
+  try {
+    await customerClient.createCustomerProfile({
+      userId: user.id,
+      displayName: request.displayName,
+      correlationId
+    });
+  } catch (_error) {
+    try {
+      await userRepo.deleteById(user.id);
+    } catch (_deleteError) {
+      logger.warn('Failed to roll back customer registration');
+    }
+    throw makeError(grpc.status.UNAVAILABLE, 'SERVICE_UNAVAILABLE', 'Customer service unavailable');
+  }
+  const activeUser = await userRepo.setAccountStatus(user.id, 'ACTIVE');
+  return { userId: activeUser.id, status: activeUser.status };
 }
 
 async function createDriverAccount({ email, password, phone }) {
@@ -81,4 +144,4 @@ async function getUser({ userId }) {
   return { userId: user.id, role: user.role, status: user.status };
 }
 
-module.exports = { login, createDriverAccount, setAccountStatus, getUser };
+module.exports = { registerCustomer, login, createDriverAccount, setAccountStatus, getUser };

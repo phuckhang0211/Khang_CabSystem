@@ -15,7 +15,12 @@ function unimplemented(call, callback) {
 
 function createAuthHandler() {
   return {
-    registerCustomer: authenticatedUnary(unimplemented),
+    registerCustomer: authenticatedUnary((call, callback) => {
+      const correlationId = call.metadata.get('x-correlation-id')[0];
+      Promise.resolve(authService.registerCustomer(call.request, correlationId))
+        .then((response) => callback(null, response))
+        .catch((error) => callback(error));
+    }),
     login: unary(authService.login),
     requestOtp: unary(otpService.requestOtp),
     verifyOtp: unary(otpService.verifyOtp),
