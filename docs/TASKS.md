@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18
-Task kế tiếp    : T19
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19
+Task kế tiếp    : T20
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
@@ -81,7 +81,7 @@ Vòng lặp của mỗi phiên:
 - [x] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
 - [x] T17 Seed phần A (auth, customer, driver, Redis)
 - [x] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
-- [ ] T19 Gateway: route driver/admin (TC12, 13, 21-23)
+- [x] T19 Gateway: route driver/admin (TC12, 13, 21-23)
 
 **D. Payment, Booking, Notify**
 - [ ] T20 Payment service + route payment (TC19)
@@ -667,3 +667,8 @@ Vòng lặp của mỗi phiên:
 - Khôi phục dữ liệu: chạy lại seed, Redis `ZCARD drivers:geo=5`, Driver 211/212 ONLINE+AVAILABLE, 213 BUSY và 214 OFFLINE.
 - Commit: `T18: Driver SearchNearby + TryAssign/Release`.
 - Bổ sung rà soát UUID: thêm helper hex 8-4-4-4-12 cho Auth `GetUser`/`SetAccountStatus` và Gateway `GET /customers/:id`; seed user 101 qua cả Auth, Customer và Gateway không bị từ chối định dạng.
+
+### [2026-10-02] T19 - Gateway: route driver/admin - HOÀN THÀNH
+- Đã làm: thêm route Driver/Admin, schema zod và controller cho onboarding application, admin review, work status/location, nearby và GetDriver safe fields. Gateway luôn lấy metadata danh tính từ JWT đã verify; onboarding là public metadata.
+- Nghiệm thu: Gateway và 16 dependency healthy. Đạt TC12, TC13, TC21-23/28: safe fields, nearby paging/default/limit, OTP/onboarding và phone mismatch, admin/RBAC, approve/reject/state conflict, driver login sau approve, work status, INVALID_COORDINATES. Đã dọn 3 hồ sơ/tài khoản thử nghiệm và Redis keys; `ZCARD drivers:geo=5`.
+- Commit: `T19: Gateway driver/admin routes`.
