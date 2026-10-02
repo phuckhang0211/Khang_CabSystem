@@ -6,7 +6,7 @@ const { waitForPostgres, runMigrations, closePostgres } = require('./db/pg');
 const { waitForRedis, closeRedis } = require('./db/redis');
 const { connectRabbit, closeRabbit } = require('./events/rabbit');
 const { createHealthHandler } = require('./grpc/health');
-const { createUnimplementedHandlers } = require('./utils/unimplemented');
+const { createDriverHandler } = require('./grpc/driver');
 
 const server = new grpc.Server();
 let shuttingDown = false;
@@ -20,7 +20,7 @@ async function start() {
   const health = loadProto('health');
   const api = loadProto('driver');
   server.addService(health.grpc.health.v1.Health.service, createHealthHandler());
-  server.addService(api.cab.driver.v1.DriverService.service, createUnimplementedHandlers(api.cab.driver.v1.DriverService.service));
+  server.addService(api.cab.driver.v1.DriverService.service, createDriverHandler(api.cab.driver.v1.DriverService.service));
   server.bindAsync(`0.0.0.0:${config.grpcPort}`, grpc.ServerCredentials.createInsecure(), (error) => {
     if (error) throw error;
     logger.info('gRPC server listening');
@@ -43,4 +43,3 @@ start().catch(() => {
   logger.error('Service startup failed');
   process.exit(1);
 });
-

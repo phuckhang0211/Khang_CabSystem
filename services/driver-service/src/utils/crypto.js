@@ -1,0 +1,6 @@
+const crypto = require('crypto');
+const config = require('../config');
+function getKey(keyId) { const encoded = keyId === 'v1' ? config.encryptionKeyV1 : config.encryptionKeyV2; const key = Buffer.from(encoded || '', 'base64'); if (!['v1', 'v2'].includes(keyId) || key.length !== 32) throw new Error('Encryption key is not configured'); return key; }
+function encrypt(plaintext) { const iv = crypto.randomBytes(12); const cipher = crypto.createCipheriv('aes-256-gcm', getKey(config.encryptionActiveKeyId), iv); const ciphertext = Buffer.concat([cipher.update(String(plaintext), 'utf8'), cipher.final()]); return `${config.encryptionActiveKeyId}:${iv.toString('base64')}:${cipher.getAuthTag().toString('base64')}:${ciphertext.toString('base64')}`; }
+function decrypt(value) { const [keyId, iv64, tag64, ciphertext64] = String(value).split(':'); const iv = Buffer.from(iv64 || '', 'base64'); const tag = Buffer.from(tag64 || '', 'base64'); const ciphertext = Buffer.from(ciphertext64 || '', 'base64'); if (!keyId || iv.length !== 12 || tag.length !== 16 || ciphertext.length === 0) throw new Error('Invalid encrypted value'); const decipher = crypto.createDecipheriv('aes-256-gcm', getKey(keyId), iv); decipher.setAuthTag(tag); return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8'); }
+module.exports = { encrypt, decrypt };

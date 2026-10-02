@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13
-Task kế tiếp    : T14
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14
+Task kế tiếp    : T15
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác
@@ -76,7 +76,7 @@ Vòng lặp của mỗi phiên:
 - [x] T13 Gateway: rate limit (TC29)
 
 **C. Driver**
-- [ ] T14 Driver: schema + SubmitApplication + Get/ListApplications
+- [x] T14 Driver: schema + SubmitApplication + Get/ListApplications
 - [ ] T15 Driver: Approve/Reject + publish event
 - [ ] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
 - [ ] T17 Seed phần A (auth, customer, driver, Redis)
@@ -276,10 +276,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §7.3 (448-497), §8.3 mục Onboarding Submit/List/Get (654-655), §16 mục 1 (1023).
 - **Làm:** schema 4 bảng (`driver_profiles, vehicles, driver_applications, driver_state_history`); copy `crypto/blindIndex/escapeHtml` từ auth; auth-client gọi `Auth.CreateDriverAccount` (chuyển tiếp correlation id + token); `SubmitApplication` (validate; trùng `license_bidx`/`plate_bidx` → `ALREADY_EXISTS`; transaction tạo profile/vehicle/application; lỗi sau khi tạo account → `Auth.SetAccountStatus(REJECTED)` best-effort); `ListApplications` (ADMIN, lọc `status`, `submitted_at DESC`, **không** kèm license); `GetApplication` (ADMIN, license giải mã).
 - **Nghiệm thu** (`[gRPC-call]` vào driver-service; ADMIN = metadata `x-user-role=ADMIN`):
-  - [ ] Submit → `status=PENDING_REVIEW`; `[psql]` driver-db: `license_number_enc`, `plate_number_enc` bắt đầu `v1:`; auth-db có user `DRIVER/PENDING`.
-  - [ ] Submit lại cùng license hoặc biển số → `ALREADY_EXISTS`.
-  - [ ] List (ADMIN) có `status` filter + phân trang; không thấy license. Get (ADMIN) thấy license đã giải mã. Gọi bằng role khác → `PERMISSION_DENIED`.
-  - [ ] `fullName="<i>a</i>"` lưu dạng escape.
+  - [x] Submit → `status=PENDING_REVIEW`; `[psql]` driver-db: `license_number_enc`, `plate_number_enc` bắt đầu `v1:`; auth-db có user `DRIVER/PENDING`.
+  - [x] Submit lại cùng license hoặc biển số → `ALREADY_EXISTS`.
+  - [x] List (ADMIN) có `status` filter + phân trang; không thấy license. Get (ADMIN) thấy license đã giải mã. Gọi bằng role khác → `PERMISSION_DENIED`.
+  - [x] `fullName="<i>a</i>"` lưu dạng escape.
 
 #### T15 - Driver: Approve/Reject + publish event
 - **Đọc:** §8.3 Approve/Reject (656-657), §6 envelope (369-374) + dòng `driver.*` (378-379), §3.3 (99).
@@ -617,3 +617,9 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: login chỉ đi qua login limiter, default bỏ qua health theo path chính xác; dùng IP socket Docker vì không có reverse proxy tin cậy.
 - Lệnh dev đổi tạm: không.
 - Commit: `T13: Gateway rate limit`.
+
+### [2026-10-02 15:00] T14 - Driver onboarding - HOÀN THÀNH
+- Đã làm: schema 4 bảng, crypto/blind-index, Auth client và Submit/List/Get Application; các RPC còn lại giữ UNIMPLEMENTED.
+- Nghiệm thu: Submit PENDING + ciphertext/index, duplicate, List/Get ADMIN (license chỉ detail), escape và UNIMPLEMENTED; đã dọn dữ liệu thử, 17 container healthy.
+- Lệnh dev đổi tạm: không.
+- Commit: `T14: Driver onboarding`.
