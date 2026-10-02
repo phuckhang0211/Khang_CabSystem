@@ -346,8 +346,8 @@ Vòng lặp của mỗi phiên:
   - [ ] `POST /bookings` thiếu `Idempotency-Key` → 400. Có key → 201 `{bookingId,status:"PAYMENT_PENDING",distanceKm,fare,paymentId,paymentUrl}`; `fare = round(distanceKm*5000)`, kiểu **number**.
   - [ ] Gửi lại cùng key+body → cùng `bookingId/paymentId` + `Idempotent-Replayed: true`, `[psql]` booking-db và payment-db không thêm dòng. Cùng key, body khác → 422 `IDEMPOTENCY_KEY_REUSED`.
   - [ ] pickup = destination → 400 `INVALID_COORDINATES`; lat=95 → 400 `INVALID_COORDINATES`.
-  - [ ] `docker compose stop payment-service` → tạo booking → 503 `PAYMENT_SERVICE_UNAVAILABLE`, booking đó `PAYMENT_FAILED`; bật lại.
-  - [ ] `GET /bookings/:id` chủ → 200; customer2 → 403; admin → 200. `GET /bookings?page=1&limit=2` có `pagination`. Vòng lặp tạo >10 booking/phút → 429 (rate limit theo user).
+  - [ ] `docker compose stop payment-service` → tạo booking → 503 `PAYMENT_SERVICE_UNAVAILABLE`, booking đó `PAYMENT_FAILED`; bật lại. **CHƯA ĐẠT: cần xác nhận mapping sau rebuild.**
+  - [ ] `GET /bookings/:id` chủ → 200; customer2 → 403; admin → 200. `GET /bookings?page=1&limit=2` có `pagination`. Vòng lặp tạo >10 booking/phút → 429 (rate limit theo user). **CHƯA ĐẠT: chưa chạy lại.**
 
 #### T22 - Booking: consumer `payment.*` + matching + offers
 - **Đọc:** §8.4 consumer payment (687-692), §6 bảng queue (392-396) + dòng `booking.offer.created` (382), §10.1 bước 2 (810), §11 BR01, BR08-11 (845-854).
