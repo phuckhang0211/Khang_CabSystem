@@ -1,0 +1,1 @@
+const crypto=require('crypto'); function normalize(v,t){const s=String(v).trim();if(t==='email')return s.toLowerCase();if(t==='phone')return s.replace(/[\s-]/g,'');return s.toUpperCase().replace(/\s/g,'');} function blindIndex(v,t){return crypto.createHmac('sha256',process.env.BLIND_INDEX_KEY).update(normalize(v,t)).digest('hex');} module.exports={blindIndex};

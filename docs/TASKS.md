@@ -9,11 +9,11 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16
-Task kế tiếp    : T17
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17
+Task kế tiếp    : T18
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
-Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev
 ```
 
 ---
@@ -79,7 +79,7 @@ Vòng lặp của mỗi phiên:
 - [x] T14 Driver: schema + SubmitApplication + Get/ListApplications
 - [x] T15 Driver: Approve/Reject + publish event
 - [x] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
-- [ ] T17 Seed phần A (auth, customer, driver, Redis)
+- [x] T17 Seed phần A (auth, customer, driver, Redis)
 - [ ] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
 - [ ] T19 Gateway: route driver/admin (TC12, 13, 21-23)
 
@@ -303,10 +303,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §12 phần đầu + §12.1 + §12.2 (868-897), §4.2.1 (203-221), §16 mục 13 (1035).
 - **Làm:** `scripts/package.json` (pg, ioredis, bcryptjs; ngoại lệ tối thiểu, ghi README), `scripts/lib/` (bản sao crypto/blindIndex/bcrypt + helper kết nối DB theo `X_DB_USER/PASSWORD/DEBUG_PORT` host `SEED_PG_HOST`, Redis `SEED_REDIS_URL`), `scripts/seed.js` chia hàm `seedAuth(), seedCustomer(), seedDriver(), seedRedis()` (**để T29 thêm `seedBooking()` v.v.**). UUID cố định `00000000-0000-0000-0000-000000000XXX`, `INSERT ... ON CONFLICT (id) DO UPDATE`, Redis ghi đè cùng key. Dữ liệu đúng §12.1/12.2: 9 user, 2 customer profile, 6 driver + vehicle (801-806) + application (901-906), Redis geo/state/location (Driver 6 không có GEO).
 - **Nghiệm thu** (chạy compose kèm debug):
-  - [ ] `cd scripts && npm i && node seed.js` chạy 2 lần liên tiếp đều không lỗi.
-  - [ ] `[psql]` đếm: auth `users`=9, customer `customer_profiles`=2, driver `driver_profiles`=6, `vehicles`=6, `driver_applications`=6.
-  - [ ] `[redis]` `ZCARD drivers:geo`=5; `HGETALL driver:00000000-0000-0000-0000-000000000213:state` có `BUSY`; Driver 214 `OFFLINE`; Driver 216 không có GEO.
-  - [ ] `[gRPC-call]` Auth.Login `customer1@example.test`/`Customer@123` → token; `driver6` login → `ACCOUNT_NOT_ACTIVE`.
+  - [x] `cd scripts && npm i && node seed.js` chạy 2 lần liên tiếp đều không lỗi.
+  - [x] `[psql]` đếm: auth `users`=9, customer `customer_profiles`=2, driver `driver_profiles`=6, `vehicles`=6, `driver_applications`=6.
+  - [x] `[redis]` `ZCARD drivers:geo`=5; `HGETALL driver:00000000-0000-0000-0000-000000000213:state` có `BUSY`; Driver 214 `OFFLINE`; Driver 216 không có GEO.
+  - [x] `[gRPC-call]` Auth.Login `customer1@example.test`/`Customer@123` → token; `driver6` login → `ACCOUNT_NOT_ACTIVE`.
 
 #### T18 - Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
 - **Đọc:** §8.3 SearchNearbyDrivers (662), Giữ chỗ tài xế + Lua (665-676), §5 DriverNearby (356-358).
@@ -512,7 +512,7 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 4/4.
 - Giả định / quyết định: `openssl` không thể chạy trong môi trường Windows này (signal pipe); dùng `crypto.randomBytes` của Node.js để sinh các secret local ngẫu nhiên tương đương.
 - Lệnh dev đổi tạm: không.
-- Commit: chưa commit.
+- Commit: `T17: Seed phần A`.
 
 ### [2026-10-01 17:50] T01 - Proto contracts - HOÀN THÀNH
 - Đã làm: tạo 9 file `common, health, auth, customer, driver, booking, trip, payment, notify.proto`; khai báo toàn bộ RPC §5, message, enum chuẩn và trường `snake_case`.
@@ -645,3 +645,11 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: proto `Location` chưa có `updatedAt`; giữ timestamp trong Redis và trả qua field `address` để không tự đổi proto ngoài task.
 - Dọn dữ liệu: xóa 2 driver/user/application/vehicle/history và Redis GEO/key theo ID; 17 container healthy.
 - Commit: `T16: Driver work status + location`.
+
+### [2026-10-02 16:35] T17 - Seed phần A (auth, customer, driver, Redis) - HOÀN THÀNH
+- Đã làm: thêm `scripts/generate-env.js` để tạo `.env` local từ mẫu, dùng `crypto.randomBytes`, luôn ghi lại URL DB/RabbitMQ dẫn xuất; sửa loader của `scripts/seed.js` để đọc giá trị sau dấu `=` thay vì tra sai trong `process.env`.
+- Nghiệm thu: seed chạy liên tiếp 2 lần; auth `users`=9, customer profile=2, driver/vehicle/application=6/6/6; Redis GEO=5, Driver 3 BUSY, Driver 4 OFFLINE, Driver 6 không có GEO; đăng nhập Admin/Customer 1/Driver 1 thành công và Driver 6 là `ACCOUNT_NOT_ACTIVE`.
+- Bảo mật/reset dev: không có biến bí mật nào là `undefined`; phát hiện `RABBITMQ_DEFAULT_PASS` không đủ dài/ngẫu nhiên, đã sinh lại bí mật mạnh và reset `docker compose ... down -v`; 17 container healthy. Login sai mật khẩu, token payload sửa và `alg=none` đều bị từ chối; gRPC Health với service token thiếu/sai là `UNAUTHENTICATED`.
+- Giả định / quyết định: `.env` từng chứa giá trị bí mật không hợp lệ theo yêu cầu bảo mật, đã sinh lại không in giá trị và reset volume dev.
+- Lệnh dev đổi tạm: không.
+- Commit: chưa commit.
