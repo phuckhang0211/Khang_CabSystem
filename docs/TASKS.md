@@ -9,11 +9,11 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17
-Task kế tiếp    : T18
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18
+Task kế tiếp    : T19
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
-Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
 ```
 
 ---
@@ -80,7 +80,7 @@ Vòng lặp của mỗi phiên:
 - [x] T15 Driver: Approve/Reject + publish event
 - [x] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
 - [x] T17 Seed phần A (auth, customer, driver, Redis)
-- [ ] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
+- [x] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
 - [ ] T19 Gateway: route driver/admin (TC12, 13, 21-23)
 
 **D. Payment, Booking, Notify**
@@ -659,3 +659,10 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: Auth Login seed trả token cho Customer 1/Driver 1/Admin (Admin role `ADMIN`), Driver 6 trả `PERMISSION_DENIED` + `ACCOUNT_NOT_ACTIVE`; cipher/blind index/bcrypt seed đúng định dạng; Redis state/GEO/TTL đúng; seed lần 3 vẫn 9/2/6/6/6 và GEO=5.
 - RabbitMQ: URL dẫn xuất khớp user/password local; Driver submit/approve thử publish `driver.approved` tới queue tạm; queue và dữ liệu Driver/Auth thử đã xóa, đếm lại đúng seed.
 - Commit: `T17: bổ sung nghiệm thu`.
+
+### [2026-10-02 17:15] T18 - Driver SearchNearby + Lua - HOÀN THÀNH
+- Đã làm: `SearchNearbyDrivers` dùng Redis GEOSEARCH + pipeline state, một query DB cho driver APPROVED/vehicle, lọc/phân trang tại service; TryAssign/Release dùng đúng Lua atomic.
+- Rà soát UUID: đã thay validator RFC version/variant bằng helper 8-4-4-4-12 hex ở `driver-service` và `customer-service`; không còn validator UUID chặt trong `services/` hoặc `gateway/`.
+- Nghiệm thu: bán kính 1 km trả 211/213/212/214 với 334/445/547/624m; lọc ONLINE+AVAILABLE 3km trả 211/212/215, total=3; race 20 TryAssign chỉ 1 thắng; validation/token sai trả đúng gRPC code/trailer.
+- Khôi phục dữ liệu: chạy lại seed, Redis `ZCARD drivers:geo=5`, Driver 211/212 ONLINE+AVAILABLE, 213 BUSY và 214 OFFLINE.
+- Commit: `T18: Driver SearchNearby + TryAssign/Release`.

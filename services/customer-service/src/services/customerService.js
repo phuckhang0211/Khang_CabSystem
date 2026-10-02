@@ -3,13 +3,12 @@ const grpc = require('@grpc/grpc-js');
 const { escapeHtml } = require('../utils/escapeHtml');
 const { makeError } = require('../utils/errors');
 const customerRepo = require('../repositories/customerRepo');
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const { isUuid } = require('../utils/uuid');
 
 function invalidArgument(message) { return makeError(grpc.status.INVALID_ARGUMENT, 'INVALID_ARGUMENT', message); }
 
 function validateUserId(userId) {
-  if (typeof userId !== 'string' || !UUID_PATTERN.test(userId)) throw invalidArgument('Invalid user id');
+  if (!isUuid(userId)) throw invalidArgument('Invalid user id');
 }
 
 function validateDisplayName(displayName) {
