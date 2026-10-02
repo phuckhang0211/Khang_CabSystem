@@ -5,7 +5,7 @@ const { loadProto } = require('./utils/proto');
 const { waitForPostgres, runMigrations, closePostgres } = require('./db/pg');
 const { connectRabbit, closeRabbit } = require('./events/rabbit');
 const { createHealthHandler } = require('./grpc/health');
-const { createUnimplementedHandlers } = require('./utils/unimplemented');
+const { createBookingHandler } = require('./grpc/booking');
 
 const server = new grpc.Server();
 let shuttingDown = false;
@@ -18,7 +18,7 @@ async function start() {
   const health = loadProto('health');
   const api = loadProto('booking');
   server.addService(health.grpc.health.v1.Health.service, createHealthHandler());
-  server.addService(api.cab.booking.v1.BookingService.service, createUnimplementedHandlers(api.cab.booking.v1.BookingService.service));
+  server.addService(api.cab.booking.v1.BookingService.service, createBookingHandler(api.cab.booking.v1.BookingService.service));
   server.bindAsync(`0.0.0.0:${config.grpcPort}`, grpc.ServerCredentials.createInsecure(), (error) => {
     if (error) throw error;
     logger.info('gRPC server listening');
@@ -41,4 +41,3 @@ start().catch(() => {
   logger.error('Service startup failed');
   process.exit(1);
 });
-

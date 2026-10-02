@@ -27,6 +27,9 @@ function trailerErrorCode(error) {
 function mapGrpcError(error) {
   const errorCode = trailerErrorCode(error);
   if (errorCode && specialErrors[errorCode]) return specialErrors[errorCode];
+  if (error && error.details === 'Payment service unavailable') {
+    return { status: 503, code: 'PAYMENT_SERVICE_UNAVAILABLE', message: 'Payment service unavailable' };
+  }
 
   const mapped = statusErrors[error && error.code];
   if (!mapped) return { status: 500, code: 'INTERNAL_ERROR', message: 'Internal server error' };
