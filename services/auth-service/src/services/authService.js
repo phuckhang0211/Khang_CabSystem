@@ -7,6 +7,7 @@ const { encrypt } = require('../utils/crypto');
 const { blindIndex, normalize } = require('../utils/blindIndex');
 const { escapeHtml } = require('../utils/escapeHtml');
 const { makeError } = require('../utils/errors');
+const { isUuid } = require('../utils/uuid');
 const userRepo = require('../repositories/userRepo');
 const customerClient = require('../clients/customerClient');
 const logger = require('../utils/logger');
@@ -27,6 +28,10 @@ function validatePhone(phone) {
 
 function invalidArgument(message) {
   return makeError(grpc.status.INVALID_ARGUMENT, 'INVALID_ARGUMENT', message);
+}
+
+function validateUserId(userId) {
+  if (!isUuid(userId)) throw invalidArgument('Invalid user id');
 }
 
 function validationError(message) {
@@ -132,6 +137,7 @@ async function createDriverAccount({ email, password, phone }) {
 }
 
 async function setAccountStatus({ userId, status }) {
+  validateUserId(userId);
   if (!['ACTIVE', 'REJECTED'].includes(status)) throw invalidArgument('Status must be ACTIVE or REJECTED');
   const user = await userRepo.setAccountStatus(userId, status);
   if (!user) throw makeError(grpc.status.NOT_FOUND, 'NOT_FOUND', 'User not found');
@@ -139,6 +145,7 @@ async function setAccountStatus({ userId, status }) {
 }
 
 async function getUser({ userId }) {
+  validateUserId(userId);
   const user = await userRepo.findById(userId);
   if (!user) throw makeError(grpc.status.NOT_FOUND, 'NOT_FOUND', 'User not found');
   return { userId: user.id, role: user.role, status: user.status };

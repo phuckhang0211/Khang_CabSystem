@@ -666,3 +666,4 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: bán kính 1 km trả 211/213/212/214 với 334/445/547/624m; lọc ONLINE+AVAILABLE 3km trả 211/212/215, total=3; race 20 TryAssign chỉ 1 thắng; validation/token sai trả đúng gRPC code/trailer.
 - Khôi phục dữ liệu: chạy lại seed, Redis `ZCARD drivers:geo=5`, Driver 211/212 ONLINE+AVAILABLE, 213 BUSY và 214 OFFLINE.
 - Commit: `T18: Driver SearchNearby + TryAssign/Release`.
+- Bổ sung rà soát UUID: thêm helper hex 8-4-4-4-12 cho Auth `GetUser`/`SetAccountStatus` và Gateway `GET /customers/:id`; seed user 101 qua cả Auth, Customer và Gateway không bị từ chối định dạng.

@@ -2,7 +2,7 @@ const express = require('express');
 const { authenticate } = require('../middlewares/auth');
 const { allow } = require('../middlewares/rbac');
 const { validate } = require('../utils/validate');
-const { updateCustomerSchema } = require('../schemas/customer');
+const { updateCustomerSchema, customerIdParamsSchema } = require('../schemas/customer');
 const { createCustomerController } = require('../controllers/customerController');
 
 function createCustomerRouter(clients) {
@@ -10,7 +10,7 @@ function createCustomerRouter(clients) {
   const router = express.Router();
   router.get('/me', authenticate, allow('CUSTOMER'), controller.getMe);
   router.patch('/me', authenticate, allow('CUSTOMER'), validate(updateCustomerSchema), controller.updateMe);
-  router.get('/:id', authenticate, allow('CUSTOMER', 'ADMIN'), controller.getById);
+  router.get('/:id', authenticate, allow('CUSTOMER', 'ADMIN'), validate(customerIdParamsSchema, 'params'), controller.getById);
   return router;
 }
 
