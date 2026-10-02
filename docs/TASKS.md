@@ -623,3 +623,10 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: Submit PENDING + ciphertext/index, duplicate, List/Get ADMIN (license chỉ detail), escape và UNIMPLEMENTED; đã dọn dữ liệu thử, 17 container healthy.
 - Lệnh dev đổi tạm: không.
 - Commit: `T14: Driver onboarding`.
+
+### [2026-10-02 15:20] T14 - Kiểm tra bổ sung - HOÀN THÀNH
+- Nghiệm thu: Submit tạo `DRIVER/PENDING` khớp profile; duplicate license/plate/email là `ALREADY_EXISTS` và không sinh hàng DB; validation là `INVALID_ARGUMENT`, thiếu token là `UNAUTHENTICATED`.
+- Nghiệm thu: CHECK constraint tạm thời làm transaction lỗi sau CreateDriverAccount; Auth user là `REJECTED`, driver-db không có hàng dở. List/Get ADMIN OK, role khác/thiếu role `PERMISSION_DENIED`, filter `PENDING_REVIEW` page=1 limit=1 trả total=2 totalPages=2, List không có license.
+- Dọn dữ liệu: xóa theo ID 2 application/profile/vehicle và 3 Auth user; psql còn driver tables=0, auth users=2; 17 container healthy.
+- Lệnh dev đổi tạm: không (constraint tạm đã gỡ).
+- Commit: `T14: bổ sung nghiệm thu`.
