@@ -9,11 +9,11 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12
-Task kế tiếp    : T13
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13
+Task kế tiếp    : T14
 Dở dang / BLOCKED: (không có)
-Lệnh dev đã đổi tạm (phải trả lại ở T36): (không có)   # vd RATE_LIMIT_LOGIN_PER_MIN tăng lên 1000
-Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu
+Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác
 ```
 
 ---
@@ -73,7 +73,7 @@ Vòng lặp của mỗi phiên:
 - [x] T10 Customer: profile (Create/Get/Update)
 - [x] T11 Auth: RegisterCustomer (gọi Customer)
 - [x] T12 Gateway: JWT + RBAC + zod + route auth/customers (TC09-11, 25-28)
-- [ ] T13 Gateway: rate limit (TC29)
+- [x] T13 Gateway: rate limit (TC29)
 
 **C. Driver**
 - [ ] T14 Driver: schema + SubmitApplication + Get/ListApplications
@@ -264,10 +264,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §9.3 (755-756), §4.3 nhóm rate limit (255-259), §4.4 dòng không rate limit (304).
 - **Làm:** middleware rate limit Redis fixed window (`INCR` + `EXPIRE` lần đầu): mặc định theo IP (mọi route trừ health), `POST /auth/login` theo IP, `POST /bookings` theo `userId` (viết sẵn, gắn route ở T21). Vượt → 429 `RATE_LIMITED` + `Retry-After`. Redis lỗi → bỏ qua (fail-open). Key có prefix `ratelimit:`.
 - **Nghiệm thu:**
-  - [ ] TC29: login sai 6 lần liên tiếp trong 1 phút → lần thứ 6 trả 429 `RATE_LIMITED` có header `Retry-After`; ngay sau đó `GET /health` vẫn 200.
-  - [ ] Vòng lặp >100 request/phút vào 1 route thường → 429.
-  - [ ] `docker compose stop redis` → login vẫn trả lỗi nghiệp vụ (không 500/429); bật lại redis.
-  - [ ] Xóa key giới hạn bằng `[redis]` (`--scan --pattern 'ratelimit:*'` rồi `DEL`) — **không** `FLUSHALL`.
+  - [x] TC29: login sai 6 lần liên tiếp trong 1 phút → lần thứ 6 trả 429 `RATE_LIMITED` có header `Retry-After`; ngay sau đó `GET /health` vẫn 200.
+  - [x] Vòng lặp >100 request/phút vào 1 route thường → 429.
+  - [x] `docker compose stop redis` → login vẫn trả lỗi nghiệp vụ (không 500/429); bật lại redis.
+  - [x] Xóa key giới hạn bằng `[redis]` (`--scan --pattern 'ratelimit:*'` rồi `DEL`) — **không** `FLUSHALL`.
   - Ghi §0: từ giờ nên tăng `RATE_LIMIT_LOGIN_PER_MIN` khi dev.
 
 ### C. Driver
@@ -605,3 +605,15 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 8/8 gồm TC09-11, TC25-27, body/OTP/onboarding, correlation ID và cleanup; 17 container healthy.
 - Lệnh dev đổi tạm: không.
 - Commit: `T12: Gateway JWT RBAC routes`.
+
+### [2026-10-02 08:00] T13 - Gateway rate limit - BLOCKED
+- Đã làm: tạo `gateway/src/middlewares/rateLimit.js` (Lua INCR/TTL/EXPIRE, fail-open), thêm limiter/config/Compose và vị trí middleware Gateway.
+- Còn lại: rebuild Gateway và toàn bộ nghiệm thu TC29, default limiter, Redis stop/start, cleanup key.
+- BLOCKED: Docker Desktop Linux engine không truy cập được `npipe:////./pipe/dockerDesktopLinuxEngine` sau 3 lần thử; file dở: rateLimit.js, config/index.js, server.js, routes/auth.js, docker-compose.yml, TASKS.md.
+
+### [2026-10-02 14:50] T13 - Gateway rate limit - HOÀN THÀNH
+- Đã làm: Redis fixed-window Lua, default/login/booking limiter, fail-open, `Retry-After`, exact health bypass và `trust proxy=false`.
+- Nghiệm thu: đạt 6/6 — login 5×401 rồi 429, request 100/101, reset key, Redis stop/start fail-open, body/header 429 và cleanup key; 17 container healthy.
+- Giả định / quyết định: login chỉ đi qua login limiter, default bỏ qua health theo path chính xác; dùng IP socket Docker vì không có reverse proxy tin cậy.
+- Lệnh dev đổi tạm: không.
+- Commit: `T13: Gateway rate limit`.

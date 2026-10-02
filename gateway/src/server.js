@@ -6,17 +6,19 @@ const { sendError } = require('./utils/response');
 const { mapGrpcError } = require('./utils/grpcError');
 const { createGrpcClients } = require('./grpc-clients');
 const { checkComponents } = require('./utils/health');
+const { defaultRateLimit } = require('./middlewares/rateLimit');
 const { createAuthRouter } = require('./routes/auth');
 const { createCustomerRouter } = require('./routes/customers');
 
 const app = express();
+app.set('trust proxy', false);
 const clients = createGrpcClients();
 const apiRouter = express.Router();
 
 app.use(correlationId);
 app.use(helmet());
 app.use(express.json({ limit: '100kb' }));
-// T13: rate limit is registered here.
+app.use(defaultRateLimit);
 
 const healthPaths = ['/health', `${config.apiPrefix}/health`];
 const readyPaths = ['/ready', `${config.apiPrefix}/ready`];

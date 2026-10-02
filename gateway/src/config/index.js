@@ -30,13 +30,21 @@ for (const name of required) {
   }
 }
 
+function positiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 module.exports = {
   apiPrefix: process.env.API_PREFIX,
   port: Number(process.env.GATEWAY_PORT),
   grpcDeadlineMs: Number(process.env.GRPC_DEADLINE_MS),
   internalServiceToken: process.env.INTERNAL_SERVICE_TOKEN,
   jwtSecret: process.env.JWT_SECRET,
-  rateLimitWindowSeconds: Number(process.env.RATE_LIMIT_WINDOW_SECONDS),
+  rateLimitWindowSeconds: positiveInteger(process.env.RATE_LIMIT_WINDOW_SECONDS, 60),
+  rateLimitDefaultPerMin: positiveInteger(process.env.RATE_LIMIT_DEFAULT_PER_MIN, 100),
+  rateLimitLoginPerMin: positiveInteger(process.env.RATE_LIMIT_LOGIN_PER_MIN, 5),
+  rateLimitBookingPerMin: positiveInteger(process.env.RATE_LIMIT_BOOKING_PER_MIN, 10),
   grpcAddresses: {
     auth: process.env.AUTH_GRPC_ADDR,
     customer: process.env.CUSTOMER_GRPC_ADDR,
