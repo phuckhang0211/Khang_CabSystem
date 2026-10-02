@@ -672,3 +672,4 @@ Vòng lặp của mỗi phiên:
 - Đã làm: thêm route Driver/Admin, schema zod và controller cho onboarding application, admin review, work status/location, nearby và GetDriver safe fields. Gateway luôn lấy metadata danh tính từ JWT đã verify; onboarding là public metadata.
 - Nghiệm thu: Gateway và 16 dependency healthy. Đạt TC12, TC13, TC21-23/28: safe fields, nearby paging/default/limit, OTP/onboarding và phone mismatch, admin/RBAC, approve/reject/state conflict, driver login sau approve, work status, INVALID_COORDINATES. Đã dọn 3 hồ sơ/tài khoản thử nghiệm và Redis keys; `ZCARD drivers:geo=5`.
 - Commit: `T19: Gateway driver/admin routes`.
+- Bổ sung nghiệm thu: phát hiện enum proto `DRIVER_REJECTED` mâu thuẫn SPEC §3.3 (`REJECTED`); đã đổi proto và mapping Driver theo SPEC, sau đó kiểm tra lại route reject.

@@ -24,7 +24,7 @@ message PageInfo {
 
 enum AccountStatus { PENDING = 0; ACTIVE = 1; REJECTED = 2; }
 enum Role { CUSTOMER = 0; DRIVER = 1; ADMIN = 2; }
-enum DriverVerificationStatus { PENDING_REVIEW = 0; APPROVED = 1; DRIVER_REJECTED = 2; }
+enum DriverVerificationStatus { PENDING_REVIEW = 0; APPROVED = 1; REJECTED = 2; }
 enum WorkStatus { ONLINE = 0; OFFLINE = 1; }
 enum Availability { AVAILABLE = 0; BUSY = 1; }
 enum BookingStatus { PAYMENT_PENDING = 0; PAYMENT_FAILED = 1; SEARCHING_DRIVER = 2; DRIVER_ASSIGNED = 3; NO_DRIVER_FOUND = 4; BOOKING_CANCELED = 5; BOOKING_COMPLETED = 6; }
