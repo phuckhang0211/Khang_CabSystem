@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21
-Task kế tiếp    : T22
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22
+Task kế tiếp    : T23
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
@@ -86,7 +86,7 @@ Vòng lặp của mỗi phiên:
 **D. Payment, Booking, Notify**
 - [x] T20 Payment service + route payment (TC19)
 - [x] T21 Booking: schema + CreateBooking (idempotency) + Get/List + route
-- [ ] T22 Booking: consumer payment.* + matching + offers
+- [x] T22 Booking: consumer payment.* + matching + offers
 - [ ] T23 Notify service + route notifications (TC07)
 - [ ] T24 Booking: ListMyOffers/Accept/Reject/Cancel + route (TC15, 16, 18)
 
@@ -677,11 +677,17 @@ Vòng lặp của mỗi phiên:
 ### [2026-10-02] T20 - Payment service + route payment - HOÀN THÀNH
 - Đã làm: schema Payment idempotent; Create/Get/HandleCallback với HMAC constant-time, transaction/replay/provider transaction unique, publisher `payment.completed|failed` sau commit; Gateway callback public và GetPayment RBAC.
 - Sửa lỗi phát hiện: PaymentStatus proto dùng các tên khác SPEC (`PAYMENT_PENDING_STATUS`...) khiến REST/gRPC trả sai enum; đã đổi thành `PENDING|COMPLETED|FAILED` theo SPEC §3.3.
+- Nghiệm thu: Create idempotent, amount/token sai, chữ ký sai/kém độ dài, SUCCESS/FAIL, replay/conflict/amount/txn duplicate, quyền Customer/Admin/Driver, DB và RabbitMQ envelope đạt yêu cầu. Đã xóa 3 payment thử và queue tạm; 17 container healthy.
+- Commit: `T20: Payment service and gateway routes`.
 
 ### [2026-10-02 22:10] T21 - Booking CreateBooking + idempotency - HOÀN THÀNH
 - Đã làm: schema Booking/Offer/Idempotency; CreateBooking Haversine/fare/Payment; replay 201 + header; Get/List với ownership/RBAC/pagination; Gateway route và booking rate limit.
 - Sửa lỗi phát hiện khi nghiệm thu: nhánh ghi idempotency thành công trả `null` nhưng bị dereference gây 500; đã xử lý. Đồng thời tuần tự hóa request cùng user/key trong tiến trình để race chỉ tạo một booking/payment.
 - Nghiệm thu: create/replay/422/cross-customer, validation/RBAC/XSS, race 5 request (1 booking + 1 payment), Get/List ownership/admin/filter. Nhánh Payment down lưu `PAYMENT_FAILED` và không lưu idempotency.
 - Commit: `T21: Booking CreateBooking + idempotency`.
-- Nghiệm thu: Create idempotent, amount/token sai, chữ ký sai/kém độ dài, SUCCESS/FAIL, replay/conflict/amount/txn duplicate, quyền Customer/Admin/Driver, DB và RabbitMQ envelope đạt yêu cầu. Đã xóa 3 payment thử và queue tạm; 17 container healthy.
-- Commit: `T20: Payment service and gateway routes`.
+
+### [2026-10-02 22:45] T22 - Booking consumer + matching + offers - HOÀN THÀNH
+- Đã làm: Booking consumer durable `booking.q` bind `payment.completed`, `payment.failed`, `trip.completed`, `trip.canceled`; matching gọi Driver bằng gRPC, tạo offer trong transaction và publish `booking.offer.created` sau commit.
+- Nghiệm thu: SUCCESS tạo đúng 3 offer 211/212/215 và 3 event envelope đúng; replay/direct duplicate không thêm offer; FAIL, không có driver, booking CANCELED, Driver service down và trip.* deferred đều đạt. Đã dọn dữ liệu thử, queue tạm, rate-limit keys; Redis seed còn `ZCARD drivers:geo=5`.
+- Giả định: SPEC không nói cách xử lý lỗi `SearchNearbyDrivers`; chọn `NO_DRIVER_FOUND`.
+- Commit: `f432948`.
