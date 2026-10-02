@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15
-Task kế tiếp    : T16
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16
+Task kế tiếp    : T17
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác
@@ -78,7 +78,7 @@ Vòng lặp của mỗi phiên:
 **C. Driver**
 - [x] T14 Driver: schema + SubmitApplication + Get/ListApplications
 - [x] T15 Driver: Approve/Reject + publish event
-- [ ] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
+- [x] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
 - [ ] T17 Seed phần A (auth, customer, driver, Redis)
 - [ ] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
 - [ ] T19 Gateway: route driver/admin (TC12, 13, 21-23)
@@ -294,10 +294,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.3 mục Trạng thái & vị trí (659-663, bỏ qua SearchNearby), §7.3 bảng Redis (498-503), §3.3 (100-101).
 - **Làm:** `SetWorkStatus` (driver xác định bằng `x-user-id`→`driver_profiles.user_id`, role DRIVER; chỉ APPROVED mới ONLINE, nếu không `PERMISSION_DENIED`; OFFLINE khi `BUSY` → `ABORTED` `DRIVER_BUSY`; ghi `driver_state_history` khi thực sự đổi); `UpdateLocation` (validate tọa độ → `INVALID_COORDINATES`; `GEOADD drivers:geo`, `HSET driver:{id}:location`, đảm bảo có `state`; **không EXPIRE/TTL**); `GetDriver{driverId|userId}` (kèm vehicle plate giải mã + location).
 - **Nghiệm thu** (dùng driver vừa approve ở T15, hoặc approve thêm 1 driver):
-  - [ ] ONLINE khi chưa APPROVED → `PERMISSION_DENIED`; sau approve → ONLINE OK, `[psql]` có 1 dòng history OFFLINE→ONLINE; đặt ONLINE lần 2 không thêm history.
-  - [ ] `[redis]` `HSET driver:<id>:state availability BUSY` rồi SetWorkStatus OFFLINE → `DRIVER_BUSY`; trả lại `AVAILABLE`.
-  - [ ] UpdateLocation lat=100 → `INVALID_COORDINATES`; hợp lệ → `ZSCORE drivers:geo <id>` có giá trị; `TTL driver:<id>:location` = `-1`.
-  - [ ] GetDriver theo `driverId` và theo `userId` trả cùng DriverInfo; không tồn tại → `NOT_FOUND`.
+  - [x] ONLINE khi chưa APPROVED → `PERMISSION_DENIED`; sau approve → ONLINE OK, `[psql]` có 1 dòng history OFFLINE→ONLINE; đặt ONLINE lần 2 không thêm history.
+  - [x] `[redis]` `HSET driver:<id>:state availability BUSY` rồi SetWorkStatus OFFLINE → `DRIVER_BUSY`; trả lại `AVAILABLE`.
+  - [x] UpdateLocation lat=100 → `INVALID_COORDINATES`; hợp lệ → `ZSCORE drivers:geo <id>` có giá trị; `TTL driver:<id>:location` = `-1`.
+  - [x] GetDriver theo `driverId` và theo `userId` trả cùng DriverInfo; không tồn tại → `NOT_FOUND`.
 
 #### T17 - Seed phần A (auth, customer, driver, Redis)
 - **Đọc:** §12 phần đầu + §12.1 + §12.2 (868-897), §4.2.1 (203-221), §16 mục 13 (1035).
@@ -638,3 +638,10 @@ Vòng lặp của mỗi phiên:
 - Dọn dữ liệu: xóa 4 application/profile/vehicle/user và 3 Redis key theo ID; queue tạm auto-delete; 17 container healthy.
 - Lệnh dev đổi tạm: không.
 - Commit: `T15: Driver Approve/Reject + event`.
+
+### [2026-10-02 16:00] T16 - Driver work status + location - HOÀN THÀNH
+- Đã làm: SetWorkStatus có transaction/history, UpdateLocation GEO/HASH không TTL, GetDriver theo driverId/userId.
+- Nghiệm thu: đạt toàn bộ; BUSY trả `DRIVER_BUSY`, tọa độ sai `INVALID_COORDINATES`, GEO đúng lng/lat và TTL=-1.
+- Giả định / quyết định: proto `Location` chưa có `updatedAt`; giữ timestamp trong Redis và trả qua field `address` để không tự đổi proto ngoài task.
+- Dọn dữ liệu: xóa 2 driver/user/application/vehicle/history và Redis GEO/key theo ID; 17 container healthy.
+- Commit: `T16: Driver work status + location`.
