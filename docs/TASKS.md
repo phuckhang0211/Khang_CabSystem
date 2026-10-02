@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14
-Task kế tiếp    : T15
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15
+Task kế tiếp    : T16
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác
@@ -77,7 +77,7 @@ Vòng lặp của mỗi phiên:
 
 **C. Driver**
 - [x] T14 Driver: schema + SubmitApplication + Get/ListApplications
-- [ ] T15 Driver: Approve/Reject + publish event
+- [x] T15 Driver: Approve/Reject + publish event
 - [ ] T16 Driver: SetWorkStatus + UpdateLocation + GetDriver
 - [ ] T17 Seed phần A (auth, customer, driver, Redis)
 - [ ] T18 Driver: SearchNearby + TryAssign/ReleaseDriver (Lua)
@@ -285,10 +285,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.3 Approve/Reject (656-657), §6 envelope (369-374) + dòng `driver.*` (378-379), §3.3 (99).
 - **Làm:** `ApproveApplication` (ADMIN, chỉ `PENDING_REVIEW` nếu không `ABORTED` `STATE_CONFLICT`): transaction cập nhật application+profile, gọi `Auth.SetAccountStatus(ACTIVE)`, commit, khởi tạo Redis `driver:{id}:state={workStatus:OFFLINE,availability:AVAILABLE}` nếu chưa có, **sau commit** publish `driver.approved`. `RejectApplication{reason 5..500}` (escapeHtml reason) + `SetAccountStatus(REJECTED)` + publish `driver.rejected`.
 - **Nghiệm thu:**
-  - [ ] Approve → application và profile `APPROVED`; auth user `ACTIVE`; `[redis] HGETALL driver:<id>:state` đúng.
-  - [ ] Approve lần 2 → `ABORTED`/`STATE_CONFLICT`. Reject reason 3 ký tự → `INVALID_ARGUMENT`.
-  - [ ] `[rmq-tmp]` bind `driver.*`: thấy message `driver.approved` đúng envelope (`eventId, eventType, occurredAt, correlationId, producer=driver-service, aggregateId, payload{driverId,userId}`); reject có `reason`.
-  - [ ] Exchange `ride.events` loại topic, durable trong UI.
+  - [x] Approve → application và profile `APPROVED`; auth user `ACTIVE`; `[redis] HGETALL driver:<id>:state` đúng.
+  - [x] Approve lần 2 → `ABORTED`/`STATE_CONFLICT`. Reject reason 3 ký tự → `INVALID_ARGUMENT`.
+  - [x] `[rmq-tmp]` bind `driver.*`: thấy message `driver.approved` đúng envelope (`eventId, eventType, occurredAt, correlationId, producer=driver-service, aggregateId, payload{driverId,userId}`); reject có `reason`.
+  - [x] Exchange `ride.events` loại topic, durable trong UI.
 
 #### T16 - Driver: SetWorkStatus + UpdateLocation + GetDriver
 - **Đọc:** §8.3 mục Trạng thái & vị trí (659-663, bỏ qua SearchNearby), §7.3 bảng Redis (498-503), §3.3 (100-101).
@@ -630,3 +630,11 @@ Vòng lặp của mỗi phiên:
 - Dọn dữ liệu: xóa theo ID 2 application/profile/vehicle và 3 Auth user; psql còn driver tables=0, auth users=2; 17 container healthy.
 - Lệnh dev đổi tạm: không (constraint tạm đã gỡ).
 - Commit: `T14: bổ sung nghiệm thu`.
+
+### [2026-10-02 15:45] T15 - Driver Approve/Reject + event - HOÀN THÀNH
+- Đã làm: thêm transaction `SELECT ... FOR UPDATE` cho duyệt/từ chối, đồng bộ trạng thái Auth trước COMMIT, Redis state sau COMMIT và publisher envelope `driver.approved`/`driver.rejected` persistent.
+- Nghiệm thu: đạt toàn bộ; concurrent Approve chỉ 1 thành công/1 `STATE_CONFLICT`, event đúng envelope/deliveryMode=2, RabbitMQ dừng thì DB Approve vẫn `APPROVED`.
+- Sửa lỗi phát hiện: ánh xạ DB `REJECTED` sang enum proto `DRIVER_REJECTED`; enum này đã có từ T01 nên nếu trả chuỗi DB trực tiếp gRPC sẽ rơi về `PENDING_REVIEW`.
+- Dọn dữ liệu: xóa 4 application/profile/vehicle/user và 3 Redis key theo ID; queue tạm auto-delete; 17 container healthy.
+- Lệnh dev đổi tạm: không.
+- Commit: `T15: Driver Approve/Reject + event`.
