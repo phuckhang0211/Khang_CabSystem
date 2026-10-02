@@ -653,3 +653,9 @@ Vòng lặp của mỗi phiên:
 - Giả định / quyết định: `.env` từng chứa giá trị bí mật không hợp lệ theo yêu cầu bảo mật, đã sinh lại không in giá trị và reset volume dev.
 - Lệnh dev đổi tạm: không.
 - Commit: chưa commit.
+
+### [2026-10-02 16:55] T17 - Bổ sung nghiệm thu - HOÀN THÀNH
+- Sửa lỗi phát hiện: validator UUID Driver chỉ chấp nhận UUID RFC version/variant, trong khi ID seed cố định §12 có version/variant bằng `0`; mở rộng validator để nhận UUID seed, nhờ đó Driver 6 chưa duyệt bị `PERMISSION_DENIED` khi `UpdateLocation` thay vì `NOT_FOUND`.
+- Nghiệm thu: Auth Login seed trả token cho Customer 1/Driver 1/Admin (Admin role `ADMIN`), Driver 6 trả `PERMISSION_DENIED` + `ACCOUNT_NOT_ACTIVE`; cipher/blind index/bcrypt seed đúng định dạng; Redis state/GEO/TTL đúng; seed lần 3 vẫn 9/2/6/6/6 và GEO=5.
+- RabbitMQ: URL dẫn xuất khớp user/password local; Driver submit/approve thử publish `driver.approved` tới queue tạm; queue và dữ liệu Driver/Auth thử đã xóa, đếm lại đúng seed.
+- Commit: `T17: bổ sung nghiệm thu`.
