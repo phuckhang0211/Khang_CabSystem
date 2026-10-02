@@ -4,6 +4,7 @@ const logger = require('./utils/logger');
 const { loadProto } = require('./utils/proto');
 const { waitForPostgres, runMigrations, closePostgres } = require('./db/pg');
 const { connectRabbit, closeRabbit } = require('./events/rabbit');
+const { startConsumer } = require('./events/consumer');
 const { createHealthHandler } = require('./grpc/health');
 const { createBookingHandler } = require('./grpc/booking');
 
@@ -14,6 +15,7 @@ async function start() {
   await waitForPostgres();
   await connectRabbit();
   await runMigrations();
+  await startConsumer(require('./events/rabbit').consume);
 
   const health = loadProto('health');
   const api = loadProto('booking');

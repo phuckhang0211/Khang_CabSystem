@@ -34,31 +34,35 @@ async function connectRabbit() {
   throw lastError;
 }
 
-async function publish(routingKey, payload, correlationId) {
-  const activeChannel = channel || await connectRabbit();
+async function publish(routingKey, payload, { correlationId, aggregateId } = {}) {
   const envelope = {
     eventId: crypto.randomUUID(),
     eventType: routingKey,
     occurredAt: new Date().toISOString(),
     correlationId,
-    data: payload
+    producer: 'booking-service',
+    aggregateId,
+    payload
   };
   try {
+    const activeChannel = channel || await connectRabbit();
     activeChannel.publish(config.rabbitmqExchange, routingKey, Buffer.from(JSON.stringify(envelope)), { persistent: true });
   } catch (error) {
     logger.error('RabbitMQ publish failed', correlationId);
   }
 }
 
-async function consume(queue, bindings, handler) {
+async function consume(queue, bindings, handler, options = {}) {
   const activeChannel = channel || await connectRabbit();
   await activeChannel.assertQueue(queue, { durable: true });
   for (const routingKey of bindings) await activeChannel.bindQueue(queue, config.rabbitmqExchange, routingKey);
-  await activeChannel.prefetch(10);
+  await activeChannel.prefetch(options.prefetch || 10);
   await activeChannel.consume(queue, async (message) => {
     if (!message) return;
     try {
-      await handler(JSON.parse(message.content.toString()));
+      let event;
+      try { event = JSON.parse(message.content.toString()); } catch (_) { logger.warn('Invalid RabbitMQ message acknowledged'); activeChannel.ack(message); return; }
+      await handler(event);
       activeChannel.ack(message);
     } catch (error) {
       logger.error('RabbitMQ consumer failed');
