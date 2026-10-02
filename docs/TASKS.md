@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : (không có)
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19
-Task kế tiếp    : T20
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20
+Task kế tiếp    : T21
 Dở dang / BLOCKED: (không có)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
@@ -84,7 +84,7 @@ Vòng lặp của mỗi phiên:
 - [x] T19 Gateway: route driver/admin (TC12, 13, 21-23)
 
 **D. Payment, Booking, Notify**
-- [ ] T20 Payment service + route payment (TC19)
+- [x] T20 Payment service + route payment (TC19)
 - [ ] T21 Booking: schema + CreateBooking (idempotency) + Get/List + route
 - [ ] T22 Booking: consumer payment.* + matching + offers
 - [ ] T23 Notify service + route notifications (TC07)
@@ -673,3 +673,9 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: Gateway và 16 dependency healthy. Đạt TC12, TC13, TC21-23/28: safe fields, nearby paging/default/limit, OTP/onboarding và phone mismatch, admin/RBAC, approve/reject/state conflict, driver login sau approve, work status, INVALID_COORDINATES. Đã dọn 3 hồ sơ/tài khoản thử nghiệm và Redis keys; `ZCARD drivers:geo=5`.
 - Commit: `T19: Gateway driver/admin routes`.
 - Bổ sung nghiệm thu: phát hiện enum proto `DRIVER_REJECTED` mâu thuẫn SPEC §3.3 (`REJECTED`); đã đổi proto và mapping Driver theo SPEC, sau đó kiểm tra lại route reject.
+
+### [2026-10-02] T20 - Payment service + route payment - HOÀN THÀNH
+- Đã làm: schema Payment idempotent; Create/Get/HandleCallback với HMAC constant-time, transaction/replay/provider transaction unique, publisher `payment.completed|failed` sau commit; Gateway callback public và GetPayment RBAC.
+- Sửa lỗi phát hiện: PaymentStatus proto dùng các tên khác SPEC (`PAYMENT_PENDING_STATUS`...) khiến REST/gRPC trả sai enum; đã đổi thành `PENDING|COMPLETED|FAILED` theo SPEC §3.3.
+- Nghiệm thu: Create idempotent, amount/token sai, chữ ký sai/kém độ dài, SUCCESS/FAIL, replay/conflict/amount/txn duplicate, quyền Customer/Admin/Driver, DB và RabbitMQ envelope đạt yêu cầu. Đã xóa 3 payment thử và queue tạm; 17 container healthy.
+- Commit: `T20: Payment service and gateway routes`.

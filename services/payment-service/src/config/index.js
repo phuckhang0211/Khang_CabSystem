@@ -1,4 +1,4 @@
-const required = ["PAYMENT_DATABASE_URL","PAYMENT_GRPC_ADDR","PAYMENT_GRPC_PORT","INTERNAL_SERVICE_TOKEN","RABBITMQ_URL","RABBITMQ_EXCHANGE"];
+const required = ["PAYMENT_DATABASE_URL","PAYMENT_GRPC_ADDR","PAYMENT_GRPC_PORT","INTERNAL_SERVICE_TOKEN","RABBITMQ_URL","RABBITMQ_EXCHANGE","PAYMENT_CALLBACK_SECRET","PAYMENT_SKIP_SIGNATURE"];
 
 for (const name of required) {
   if (!process.env[name]) {
@@ -15,6 +15,7 @@ module.exports = {
   internalServiceToken: process.env.INTERNAL_SERVICE_TOKEN,
   rabbitmqUrl: process.env.RABBITMQ_URL,
   rabbitmqExchange: process.env.RABBITMQ_EXCHANGE,
+  paymentCallbackSecret: process.env.PAYMENT_CALLBACK_SECRET,
+  paymentSkipSignature: process.env.PAYMENT_SKIP_SIGNATURE === 'true',
   logLevel: process.env.LOG_LEVEL || 'info'
 };
-

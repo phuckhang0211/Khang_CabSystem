@@ -1,0 +1,13 @@
+const { z } = require('zod');
+const { isUuid } = require('../utils/uuid');
+
+const paymentIdParamsSchema = z.object({ id: z.string().refine(isUuid) });
+const callbackSchema = z.object({
+  paymentId: z.string().refine(isUuid),
+  providerTxnId: z.string().min(1).max(120),
+  amount: z.number().int().positive(),
+  result: z.enum(['SUCCESS', 'FAIL']),
+  signature: z.string()
+});
+
+module.exports = { paymentIdParamsSchema, callbackSchema };
