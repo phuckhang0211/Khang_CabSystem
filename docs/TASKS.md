@@ -8,10 +8,10 @@
 ## 0. TRẠNG THÁI HIỆN TẠI (Codex cập nhật khối này sau MỖI task)
 
 ```
-Task đang làm   : (không có)
+Task đang làm   : T23
 Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22
 Task kế tiếp    : T23
-Dở dang / BLOCKED: (không có)
+Dở dang / BLOCKED: T23 (chưa nghiệm thu)
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
 ```
@@ -312,21 +312,21 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.3 SearchNearbyDrivers (662), Giữ chỗ tài xế + Lua (665-676), §5 DriverNearby (356-358).
 - **Làm:** `SearchNearbyDrivers` (`GEOSEARCH ... BYRADIUS r km ASC WITHDIST`, đọc `state` bằng pipeline, join DB chỉ giữ APPROVED + vehicle, lọc `workStatus`/`availability` nếu có, `distanceMeters=round(km*1000)`, tăng dần, **phân trang trong service** trả `total`; radius mặc định 1, >0 và ≤50); `TryAssignDriver` + `ReleaseDriver` dùng **đúng 2 script Lua** của §8.3 (Release idempotent, chỉ khi `currentBookingId` khớp).
 - **Nghiệm thu** (`[gRPC-call]`, gốc 10.762622,106.660172):
-  - [ ] radius 1 km: có Driver 1,2,3,4 (đúng thứ tự khoảng cách tăng dần, `distanceMeters` ≈ 330/450/550/620), **không** có 5 (2.45 km) và 6.
-  - [ ] radius 3 + `workStatus=ONLINE`+`availability=AVAILABLE`, limit 3 → Driver 1,2,5; `total` đúng; page=2 limit=1 → phần tử thứ 2.
-  - [ ] radius=0 hoặc 51 → `INVALID_ARGUMENT`.
-  - [ ] TryAssign Driver 1 với booking X → `assigned=true`, `[redis]` `availability=BUSY, currentBookingId=X`; gọi lần 2 (booking Y) → `assigned=false`; Driver 3 (BUSY) và 4 (OFFLINE) → `false`.
-  - [ ] Release với booking Y (sai) → `released=false`; với X → `true`, state về AVAILABLE; Release lần nữa → `false`.
+  - [x] radius 1 km: có Driver 1,2,3,4 (đúng thứ tự khoảng cách tăng dần, `distanceMeters` ≈ 330/450/550/620), **không** có 5 (2.45 km) và 6.
+  - [x] radius 3 + `workStatus=ONLINE`+`availability=AVAILABLE`, limit 3 → Driver 1,2,5; `total` đúng; page=2 limit=1 → phần tử thứ 2.
+  - [x] radius=0 hoặc 51 → `INVALID_ARGUMENT`.
+  - [x] TryAssign Driver 1 với booking X → `assigned=true`, `[redis]` `availability=BUSY, currentBookingId=X`; gọi lần 2 (booking Y) → `assigned=false`; Driver 3 (BUSY) và 4 (OFFLINE) → `false`.
+  - [x] Release với booking Y (sai) → `released=false`; với X → `true`, state về AVAILABLE; Release lần nữa → `false`.
 
 #### T19 - Gateway: route driver/admin
 - **Đọc:** §9.2 dòng onboardingToken (753), §9.4 các hàng drivers/admin (771-779), §5 cuối (358: safe fields).
 - **Làm:** routes: `POST /drivers/applications` (guard onboardingToken `purpose=DRIVER_ONBOARDING`, `body.phone` chuẩn hóa phải khớp `payload.phone` → 400; token thường không dùng được và ngược lại), `GET /admin/driver-applications[/:id]`, `POST .../approve`, `POST .../reject`, `PUT /drivers/me/status`, `PUT /drivers/me/location`, `GET /drivers/nearby` (query zod), `GET /drivers/:id` (**safe fields**: driverId, fullName, workStatus, availability, vehicle{plateNumber,vehicleType,brand,model,color}; không `userId`/`licenseNumber`).
 - **Nghiệm thu** (`[curl]` với seed):
-  - [ ] TC21: request OTP (lưu `data.otp`) → verify bằng mã đó → `POST /drivers/applications` bằng onboardingToken → 201 `PENDING_REVIEW`; dùng token đăng nhập thường ở endpoint này → 401; phone body khác phone token → 400.
-  - [ ] TC22: admin list (`?status=PENDING_REVIEW`) → có Driver 6 + driver mới; approve/reject đổi trạng thái; customer gọi `/admin/...` → 403. Sau approve, login của driver mới OK.
-  - [ ] TC23: driver1 `PUT /drivers/me/status {"status":"OFFLINE"}` OK rồi ONLINE lại; customer gọi → 403 `FORBIDDEN` (TC28) body không có data.
-  - [ ] TC12: `GET /drivers/<211>` → 200 chỉ safe fields. TC13: `GET /drivers/nearby?lat=10.762622&lng=106.660172&radiusKm=1` → 4 driver tăng dần; `limit=2&page=2` đúng; `limit=51` → 400.
-  - [ ] `PUT /drivers/me/location` driver1 lat=100 → 400 `INVALID_COORDINATES`.
+  - [x] TC21: request OTP (lưu `data.otp`) → verify bằng mã đó → `POST /drivers/applications` bằng onboardingToken → 201 `PENDING_REVIEW`; dùng token đăng nhập thường ở endpoint này → 401; phone body khác phone token → 400.
+  - [x] TC22: admin list (`?status=PENDING_REVIEW`) → có Driver 6 + driver mới; approve/reject đổi trạng thái; customer gọi `/admin/...` → 403. Sau approve, login của driver mới OK.
+  - [x] TC23: driver1 `PUT /drivers/me/status {"status":"OFFLINE"}` OK rồi ONLINE lại; customer gọi → 403 `FORBIDDEN` (TC28) body không có data.
+  - [x] TC12: `GET /drivers/<211>` → 200 chỉ safe fields. TC13: `GET /drivers/nearby?lat=10.762622&lng=106.660172&radiusKm=1` → 4 driver tăng dần; `limit=2&page=2` đúng; `limit=51` → 400.
+  - [x] `PUT /drivers/me/location` driver1 lat=100 → 400 `INVALID_COORDINATES`.
 
 ### D. Payment, Booking, Notify
 
@@ -334,35 +334,35 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §7.6 (592-611), §8.5 (709-717), §6 dòng `payment.*` (380-381), §9.4 hàng payments (794-795), §13 TC30 (930).
 - **Làm:** schema `payments`; `CreatePayment` (nội bộ; `amount>0`; trùng `booking_id` → trả bản cũ; `payment_url=mock://pay/{id}`), `GetPayment` (CUSTOMER chỉ của mình, ADMIN tất cả, nếu không `PERMISSION_DENIED`; request không có `x-user-id` = nội bộ), `HandleCallback` đúng 5 bước §8.5 (HMAC `timingSafeEqual`, `PAYMENT_SKIP_SIGNATURE`, replay, `INVALID_AMOUNT`, conditional UPDATE, publish `payment.completed|failed` **sau commit**). Gateway: `POST /payments/mock/callback` (public), `GET /payments/:id`.
 - **Nghiệm thu:**
-  - [ ] `[gRPC-call]` CreatePayment (booking giả) → `PENDING`, `paymentUrl=mock://pay/<id>`; gọi lại cùng bookingId → cùng `paymentId`; amount 0 → `INVALID_ARGUMENT`.
-  - [ ] Chữ ký sai: `[curl]` callback → 400 `INVALID_SIGNATURE`, `[psql]` payment vẫn `PENDING`, `[rmq-tmp]` không có event. Chữ ký đúng (`printf '%s' "$PID|TXN1|$AMT|SUCCESS" | openssl dgst -sha256 -hmac "$PAYMENT_CALLBACK_SECRET" -hex`) → 200 `COMPLETED`, có `paid_at`, event `payment.completed` đúng payload.
-  - [ ] Callback lặp cùng `providerTxnId` → `replayed:true`, **không** thêm event; txn khác → 409; `amount` sai (payment khác) → 400 `INVALID_AMOUNT`; `providerTxnId` đã dùng cho payment khác → 409.
-  - [ ] Payment khác với `result=FAIL` → `FAILED`, `failure_code=MOCK_PAYMENT_FAILED`, event `payment.failed`. `paymentId` không tồn tại → 404.
+  - [x] `[gRPC-call]` CreatePayment (booking giả) → `PENDING`, `paymentUrl=mock://pay/<id>`; gọi lại cùng bookingId → cùng `paymentId`; amount 0 → `INVALID_ARGUMENT`.
+  - [x] Chữ ký sai: `[curl]` callback → 400 `INVALID_SIGNATURE`, `[psql]` payment vẫn `PENDING`, `[rmq-tmp]` không có event. Chữ ký đúng (`printf '%s' "$PID|TXN1|$AMT|SUCCESS" | openssl dgst -sha256 -hmac "$PAYMENT_CALLBACK_SECRET" -hex`) → 200 `COMPLETED`, có `paid_at`, event `payment.completed` đúng payload.
+  - [x] Callback lặp cùng `providerTxnId` → `replayed:true`, **không** thêm event; txn khác → 409; `amount` sai (payment khác) → 400 `INVALID_AMOUNT`; `providerTxnId` đã dùng cho payment khác → 409.
+  - [x] Payment khác với `result=FAIL` → `FAILED`, `failure_code=MOCK_PAYMENT_FAILED`, event `payment.failed`. `paymentId` không tồn tại → 404.
 
 #### T21 - Booking: schema + CreateBooking (idempotency) + Get/List + route
 - **Đọc:** §7.4 (505-560), §8.4 CreateBooking + GetBooking/ListBookings (679-686, 707), §9.4 hàng bookings (780-782), §3.7 escapeHtml (145), §11 BR06-07 (849-850).
 - **Làm:** schema 3 bảng (`bookings, booking_offers, idempotency_keys`); copy `escapeHtml`; payment-client (chuyển tiếp correlation id+token, **không** chuyển `x-user-id`); `CreateBooking` đúng 4 bước §8.4 (validate tọa độ, `requestHash`, replay/422, Haversine R=6371 làm tròn 2 số, `fare=round(km*PRICE_PER_KM)`, `fare<=0` → `INVALID_COORDINATES`, insert `PAYMENT_PENDING` → CreatePayment, lỗi → `PAYMENT_FAILED` + `UNAVAILABLE`/503 `PAYMENT_SERVICE_UNAVAILABLE` và không lưu idempotency, race UNIQUE → đọc lại); `GetBooking`, `ListBookings` (customer chỉ của mình; admin lọc `customerId`; `created_at DESC`; `total/totalPages`). Gateway: `POST /bookings` (bắt buộc header `Idempotency-Key` 1..120, thiếu → 400; replay → header `Idempotent-Replayed: true`; gắn rate limit theo user), `GET /bookings/:id`, `GET /bookings`.
 - **Nghiệm thu** (`[curl]`, customer1 token):
-  - [ ] `POST /bookings` thiếu `Idempotency-Key` → 400. Có key → 201 `{bookingId,status:"PAYMENT_PENDING",distanceKm,fare,paymentId,paymentUrl}`; `fare = round(distanceKm*5000)`, kiểu **number**.
-  - [ ] Gửi lại cùng key+body → cùng `bookingId/paymentId` + `Idempotent-Replayed: true`, `[psql]` booking-db và payment-db không thêm dòng. Cùng key, body khác → 422 `IDEMPOTENCY_KEY_REUSED`.
-  - [ ] pickup = destination → 400 `INVALID_COORDINATES`; lat=95 → 400 `INVALID_COORDINATES`.
-  - [ ] `docker compose stop payment-service` → tạo booking → 503 `PAYMENT_SERVICE_UNAVAILABLE`, booking đó `PAYMENT_FAILED`; bật lại. **CHƯA ĐẠT: cần xác nhận mapping sau rebuild.**
-  - [ ] `GET /bookings/:id` chủ → 200; customer2 → 403; admin → 200. `GET /bookings?page=1&limit=2` có `pagination`. Vòng lặp tạo >10 booking/phút → 429 (rate limit theo user). **CHƯA ĐẠT: chưa chạy lại.**
+  - [x] `POST /bookings` thiếu `Idempotency-Key` → 400. Có key → 201 `{bookingId,status:"PAYMENT_PENDING",distanceKm,fare,paymentId,paymentUrl}`; `fare = round(distanceKm*5000)`, kiểu **number**.
+  - [x] Gửi lại cùng key+body → cùng `bookingId/paymentId` + `Idempotent-Replayed: true`, `[psql]` booking-db và payment-db không thêm dòng. Cùng key, body khác → 422 `IDEMPOTENCY_KEY_REUSED`.
+  - [x] pickup = destination → 400 `INVALID_COORDINATES`; lat=95 → 400 `INVALID_COORDINATES`.
+  - [x] `docker compose stop payment-service` → tạo booking → 503 `PAYMENT_SERVICE_UNAVAILABLE`, booking đó `PAYMENT_FAILED`; bật lại.
+  - [x] `GET /bookings/:id` chủ → 200; customer2 → 403; admin → 200. `GET /bookings?page=1&limit=2` có `pagination`. Vòng lặp tạo >10 booking/phút → 429 (rate limit theo user).
 
 #### T22 - Booking: consumer `payment.*` + matching + offers
 - **Đọc:** §8.4 consumer payment (687-692), §6 bảng queue (392-396) + dòng `booking.offer.created` (382), §10.1 bước 2 (810), §11 BR01, BR08-11 (845-854).
 - **Làm:** `booking.q` bind `payment.completed, payment.failed, trip.completed, trip.canceled` (handler trip.* làm ở T27, tạm ack/log); `payment.completed`: chỉ khi `UPDATE ... SET status='SEARCHING_DRIVER' WHERE id AND status='PAYMENT_PENDING'` ảnh hưởng 1 dòng mới matching (booking đã `CANCELED`/khác → bỏ qua, ack); matching bằng `Driver.SearchNearbyDrivers{radiusKm=MATCH_RADIUS_KM, ONLINE, AVAILABLE, page=1, limit=MATCH_MAX_OFFERS}`; không driver → `NO_DRIVER_FOUND` (có điều kiện `status='SEARCHING_DRIVER'`); có → insert offers `PENDING` (`expires_at=now+OFFER_TTL_SECONDS`), sau commit publish **1 `booking.offer.created` cho mỗi offer** (có `driverUserId`). `payment.failed`: `PAYMENT_PENDING → PAYMENT_FAILED`, không offer.
 - **Nghiệm thu** (seed; callback bằng HMAC):
-  - [ ] Booking mới từ điểm gốc seed + callback SUCCESS → booking `SEARCHING_DRIVER`; `[psql]` có **3 offer PENDING** cho driver 211, 212, 215 (không có 213/214/216); `[rmq-tmp]` bind `booking.offer.created` thấy 3 message đúng `driverUserId`.
-  - [ ] Callback SUCCESS lặp → không thêm offer. Booking khác với callback FAIL → `PAYMENT_FAILED`, 0 offer.
-  - [ ] Đặt tạm tất cả driver OFFLINE bằng `[redis]` (hoặc đổi điểm đón thật xa) → callback SUCCESS → booking `NO_DRIVER_FOUND`; khôi phục state seed bằng `node scripts/seed.js`.
-  - [ ] Cập nhật tay booking sang `CANCELED` trước khi callback SUCCESS đến → callback vẫn 200, payment `COMPLETED`, booking vẫn `CANCELED`, 0 offer.
+  - [x] Booking mới từ điểm gốc seed + callback SUCCESS → booking `SEARCHING_DRIVER`; `[psql]` có **3 offer PENDING** cho driver 211, 212, 215 (không có 213/214/216); `[rmq-tmp]` bind `booking.offer.created` thấy 3 message đúng `driverUserId`.
+  - [x] Callback SUCCESS lặp → không thêm offer. Booking khác với callback FAIL → `PAYMENT_FAILED`, 0 offer.
+  - [x] Đặt tạm tất cả driver OFFLINE bằng `[redis]` (hoặc đổi điểm đón thật xa) → callback SUCCESS → booking `NO_DRIVER_FOUND`; khôi phục state seed bằng `node scripts/seed.js`.
+  - [x] Cập nhật tay booking sang `CANCELED` trước khi callback SUCCESS đến → callback vẫn 200, payment `COMPLETED`, booking vẫn `CANCELED`, 0 offer.
 
 #### T23 - Notify service + route notifications
 - **Đọc:** §7.7 (613-632), §8.7 (728-743), §6 bảng queue (392-396), §9.4 hàng notifications (798-800), §3.3 notification type (107-108).
 - **Làm:** schema `notifications`; `notify.q` bind `driver.*, payment.*, booking.*, trip.*`; consumer tạo notification theo **bảng recipient §8.7** (INSERT ... `ON CONFLICT (recipient_id,event_id,type) DO NOTHING`, `event_id`=envelope `eventId`); `ListNotifications` (của người gọi, `unread=true`, phân trang, mới nhất trước), `MarkRead` (404/403), `MarkAllRead`. Gateway: `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`.
 - **Nghiệm thu:**
-  - [ ] TC07: UI RabbitMQ thấy exchange `ride.events` (topic), queue `booking.q, trip.q, notify.q` (trip.q ở T25 mới có; ghi log nếu chưa) và binding đúng.
+  - [x] TC07: UI RabbitMQ thấy exchange `ride.events` (topic), queue `booking.q, trip.q, notify.q` (trip.q ở T25 mới có; ghi log nếu chưa) và binding đúng.
   - [ ] Tạo booking + callback SUCCESS (như T22): customer1 `GET /notifications` có `PAYMENT_COMPLETED`; driver1, driver2, driver5 mỗi người có **đúng 1** `BOOKING_OFFER` (driver3/4 không có). Replay cùng event không tạo trùng.
   - [ ] `GET /notifications?unread=true` lọc đúng; `POST /notifications/:id/read` → READ; người khác đọc → 403; id lạ → 404; `read-all` xong `unread=true` rỗng.
   - [ ] Approve một driver (T19) → driver đó nhận `DRIVER_APPROVED`.
@@ -512,7 +512,7 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: đạt 4/4.
 - Giả định / quyết định: `openssl` không thể chạy trong môi trường Windows này (signal pipe); dùng `crypto.randomBytes` của Node.js để sinh các secret local ngẫu nhiên tương đương.
 - Lệnh dev đổi tạm: không.
-- Commit: `T17: Seed phần A`.
+- Commit: `T00: Khung repo, .gitignore, .env, .env.example` (`1b097c7`).
 
 ### [2026-10-01 17:50] T01 - Proto contracts - HOÀN THÀNH
 - Đã làm: tạo 9 file `common, health, auth, customer, driver, booking, trip, payment, notify.proto`; khai báo toàn bộ RPC §5, message, enum chuẩn và trường `snake_case`.
@@ -652,7 +652,7 @@ Vòng lặp của mỗi phiên:
 - Bảo mật/reset dev: không có biến bí mật nào là `undefined`; phát hiện `RABBITMQ_DEFAULT_PASS` không đủ dài/ngẫu nhiên, đã sinh lại bí mật mạnh và reset `docker compose ... down -v`; 17 container healthy. Login sai mật khẩu, token payload sửa và `alg=none` đều bị từ chối; gRPC Health với service token thiếu/sai là `UNAUTHENTICATED`.
 - Giả định / quyết định: `.env` từng chứa giá trị bí mật không hợp lệ theo yêu cầu bảo mật, đã sinh lại không in giá trị và reset volume dev.
 - Lệnh dev đổi tạm: không.
-- Commit: chưa commit.
+- Commit: `T17: Seed phần A` (`b0fb32d`).
 
 ### [2026-10-02 16:55] T17 - Bổ sung nghiệm thu - HOÀN THÀNH
 - Sửa lỗi phát hiện: validator UUID Driver chỉ chấp nhận UUID RFC version/variant, trong khi ID seed cố định §12 có version/variant bằng `0`; mở rộng validator để nhận UUID seed, nhờ đó Driver 6 chưa duyệt bị `PERMISSION_DENIED` khi `UpdateLocation` thay vì `NOT_FOUND`.
@@ -691,3 +691,10 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: SUCCESS tạo đúng 3 offer 211/212/215 và 3 event envelope đúng; replay/direct duplicate không thêm offer; FAIL, không có driver, booking CANCELED, Driver service down và trip.* deferred đều đạt. Đã dọn dữ liệu thử, queue tạm, rate-limit keys; Redis seed còn `ZCARD drivers:geo=5`.
 - Giả định: SPEC không nói cách xử lý lỗi `SearchNearbyDrivers`; chọn `NO_DRIVER_FOUND`.
 - Commit: `f432948`.
+
+### [2026-10-02] T23 - DỞ DANG
+- Đã làm: schema Notify, consumer RabbitMQ durable/idempotent, bảng recipient §8.7, gRPC handlers và 3 route Gateway.
+- Còn lại: rebuild, 5 ô nghiệm thu và dọn dữ liệu.
+- File đang thay đổi: `gateway/src/server.js`, `gateway/src/controllers/notificationController.js`, `gateway/src/routes/notifications.js`, `gateway/src/schemas/notification.js`, `services/notify-service/migrations/schema.sql`, `services/notify-service/src/server.js`, `services/notify-service/src/grpc/notify.js`, `services/notify-service/src/repositories/notificationRepo.js`, `services/notify-service/src/services/notificationService.js`.
+- Smoke test trước đó có `INVALID_TOKEN` vì JSON inline qua PowerShell/curl bị parse lỗi, token đọc ra rỗng; dùng file JSON UTF-8 không BOM đã đăng nhập và POST booking 201, không phải lỗi JWT.
+- Checkpoint: TC07 đạt; `trip.q` chưa có vì Trip làm ở T25.
