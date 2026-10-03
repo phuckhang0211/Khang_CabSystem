@@ -14,6 +14,7 @@ const { createPaymentRouter } = require("./routes/payments");
 const { createBookingRouter } = require("./routes/bookings");
 const { createBookingOfferRouter } = require("./routes/bookingOffers");
 const { createNotificationRouter } = require("./routes/notifications");
+const { createTripRouter } = require("./routes/trips");
 
 const app = express();
 app.set("trust proxy", false);
@@ -59,6 +60,7 @@ apiRouter.use("/payments", createPaymentRouter(clients));
 apiRouter.use("/bookings", createBookingRouter(clients));
 apiRouter.use("/booking-offers", createBookingOfferRouter(clients));
 apiRouter.use("/notifications", createNotificationRouter(clients));
+apiRouter.use("/trips", createTripRouter(clients));
 app.use(config.apiPrefix, apiRouter);
 
 app.use((req, res) => sendError(res, req, 404, "NOT_FOUND", "Route not found"));

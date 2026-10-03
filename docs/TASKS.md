@@ -8,9 +8,9 @@
 ## 0. TRẠNG THÁI HIỆN TẠI (Codex cập nhật khối này sau MỖI task)
 
 ```
-Task đang làm   : T25
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24
-Task kế tiếp    : T25
+Task đang làm   : T26
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25
+Task kế tiếp    : T26
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -91,7 +91,7 @@ Vòng lặp của mỗi phiên:
 - [x] T24 Booking: ListMyOffers/Accept/Reject/Cancel + route (TC15, 16, 18)
 
 **E. Trip, Review**
-- [ ] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
+- [x] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
 - [ ] T26 Trip: Arrive/Start/UpdateLocation/Complete + event (TC17)
 - [ ] T27 Trip: Cancel + Booking consume trip.completed/canceled (TC18)
 - [ ] T28 Customer: Reviews + route (TC20)
@@ -386,10 +386,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §7.5 (562-590), §8.6 consumer + xác định driver + GetTrip (720-721, 726), §6 `trip.q` (395), §9.4 hàng trips GET (787-788), §11 BR12 (855).
 - **Làm:** schema `trips`; `trip.q` bind `booking.assigned` → `INSERT ... ON CONFLICT (booking_id) DO NOTHING` (status `DRIVER_ARRIVING`, `payment_status=PAID`, `paid_at`, `fare`, `vehicle_id`, `payment_id`); `GetTrip`, `GetTripByBooking` (chủ trip / driver được gán / admin; còn lại 403; không có → 404; trả đủ field §8.6). Driver service được xác định bằng `Driver.GetDriver{userId}`. Gateway: `GET /trips/:id`, `GET /trips/by-booking/:bookingId`.
 - **Nghiệm thu:**
-  - [ ] `GET /trips/by-booking/:bookingId` **trước** accept → 404; sau accept (flow T24) → 200 `DRIVER_ARRIVING`, `paymentStatus="PAID"`, `fare` là number.
-  - [ ] Phát lại event (`[rmq-tmp]`/accept mới) không tạo Trip thứ hai (`[psql]` đếm theo booking_id).
-  - [ ] Customer khác / driver khác xem trip → 403; admin → 200; driver được gán → 200.
-  - [ ] UI RabbitMQ thấy đủ 3 queue `booking.q, trip.q, notify.q` (hoàn tất TC07).
+  - [x] `GET /trips/by-booking/:bookingId` **trước** accept → 404; sau accept (flow T24) → 200 `DRIVER_ARRIVING`, `paymentStatus="PAID"`, `fare` là number.
+  - [x] Phát lại event (`[rmq-tmp]`/accept mới) không tạo Trip thứ hai (`[psql]` đếm theo booking_id).
+  - [x] Customer khác / driver khác xem trip → 403; admin → 200; driver được gán → 200.
+  - [x] UI RabbitMQ thấy đủ 3 queue `booking.q, trip.q, notify.q` (hoàn tất TC07).
 
 #### T26 - Trip: Arrive/Start/UpdateTripLocation/Complete + event
 - **Đọc:** §8.6 Arrive/Start/UpdateTripLocation/Complete (722-724), §6 dòng `trip.*` (385-388), §16 mục 3, 7 (1025, 1029), §9.4 hàng trips POST/PUT (789-792).
@@ -726,3 +726,9 @@ Vòng lặp của mỗi phiên:
 ### [2026-10-03 20:15] Rà soát repo trước T25 - HOÀN THÀNH
 - Đã kiểm tra status, untracked/ignored, diff từng file, integrity commit T24, AGENTS/TASKS/SPEC, `.env` (không in bí mật), syntax JS và compose config. Commit T24 chỉ chứa các file Booking/Gateway/seed/TASKS thuộc phạm vi.
 - `services/auth-service/src/services/authService.js` là loại (b): chỉ reformat quote/xuống dòng/indent, không đổi logic. Đã sao lưu diff tại `%TEMP%\\t25-precheck-authService.patch`, hoàn tác file và xác minh lại `login customer1` 200, `GET /customers/me` 200 sau rebuild Auth/Customer. Không còn thay đổi chưa commit.
+
+### [2026-10-03] T25 - Trip schema + consumer + Get/GetByBooking - HOÀN THÀNH
+- Đã làm: schema `trips`, consumer durable `trip.q` cho `booking.assigned`, `GetTrip`/`GetTripByBooking` có ownership Customer/Driver/Admin, và hai route Gateway.
+- Nghiệm thu: trước accept 404; sau accept tạo `DRIVER_ARRIVING`/`PAID` với fare number, paidAt/vehicleId/paymentId; publish lại event vẫn chỉ một trip; ownership/UUID/auth và gRPC thiếu service token đạt. Có đủ `booking.q`, `trip.q`, `notify.q`; dữ liệu test đã dọn và seed khôi phục.
+- Giả định: schema §7.5 không có cột pickup/destination; Trip proto giữ field sẵn có và trả Location mặc định cho đến task lifecycle kế tiếp.
+- Commit: `T25: Trip schema + booking.assigned consumer + get trip routes`.
