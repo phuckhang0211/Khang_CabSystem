@@ -722,3 +722,7 @@ Vòng lặp của mỗi phiên:
 - Sửa lỗi nghiệm thu: race hai accept từng có thể deadlock do `FOR UPDATE` trên hai offer khác nhau và trả 503. Repository nay quyết định thắng/thua bằng conditional update Booking, nên bên thua release Redis driver và nhận 409. Seed cũng xóa `currentBookingId`/`currentTripId` để khôi phục state Redis đúng sau test.
 - Nghiệm thu: A–G đạt, gồm event envelope/recipient Notify, các lỗi 400/401/403/404/409/410, cancel, hai race, gRPC thiếu service token và dọn dữ liệu; 17 container healthy. Seed từ host cần debug overlay.
 - Commit: `T24: Booking offers/accept/reject/cancel`.
+
+### [2026-10-03 20:15] Rà soát repo trước T25 - HOÀN THÀNH
+- Đã kiểm tra status, untracked/ignored, diff từng file, integrity commit T24, AGENTS/TASKS/SPEC, `.env` (không in bí mật), syntax JS và compose config. Commit T24 chỉ chứa các file Booking/Gateway/seed/TASKS thuộc phạm vi.
+- `services/auth-service/src/services/authService.js` là loại (b): chỉ reformat quote/xuống dòng/indent, không đổi logic. Đã sao lưu diff tại `%TEMP%\\t25-precheck-authService.patch`, hoàn tác file và xác minh lại `login customer1` 200, `GET /customers/me` 200 sau rebuild Auth/Customer. Không còn thay đổi chưa commit.
