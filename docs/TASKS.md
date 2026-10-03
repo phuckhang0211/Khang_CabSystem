@@ -8,12 +8,12 @@
 ## 0. TRẠNG THÁI HIỆN TẠI (Codex cập nhật khối này sau MỖI task)
 
 ```
-Task đang làm   : T23
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22
-Task kế tiếp    : T23
-Dở dang / BLOCKED: T23 (chưa nghiệm thu)
+Task đang làm   : không
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23
+Task kế tiếp    : T24
+Dở dang / BLOCKED: không
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
-Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`
+Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
 ```
 
 ---
@@ -87,7 +87,7 @@ Vòng lặp của mỗi phiên:
 - [x] T20 Payment service + route payment (TC19)
 - [x] T21 Booking: schema + CreateBooking (idempotency) + Get/List + route
 - [x] T22 Booking: consumer payment.* + matching + offers
-- [ ] T23 Notify service + route notifications (TC07)
+- [x] T23 Notify service + route notifications (TC07)
 - [ ] T24 Booking: ListMyOffers/Accept/Reject/Cancel + route (TC15, 16, 18)
 
 **E. Trip, Review**
@@ -363,10 +363,10 @@ Vòng lặp của mỗi phiên:
 - **Làm:** schema `notifications`; `notify.q` bind `driver.*, payment.*, booking.*, trip.*`; consumer tạo notification theo **bảng recipient §8.7** (INSERT ... `ON CONFLICT (recipient_id,event_id,type) DO NOTHING`, `event_id`=envelope `eventId`); `ListNotifications` (của người gọi, `unread=true`, phân trang, mới nhất trước), `MarkRead` (404/403), `MarkAllRead`. Gateway: `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`.
 - **Nghiệm thu:**
   - [x] TC07: UI RabbitMQ thấy exchange `ride.events` (topic), queue `booking.q, trip.q, notify.q` (trip.q ở T25 mới có; ghi log nếu chưa) và binding đúng.
-  - [ ] Tạo booking + callback SUCCESS (như T22): customer1 `GET /notifications` có `PAYMENT_COMPLETED`; driver1, driver2, driver5 mỗi người có **đúng 1** `BOOKING_OFFER` (driver3/4 không có). Replay cùng event không tạo trùng.
-  - [ ] `GET /notifications?unread=true` lọc đúng; `POST /notifications/:id/read` → READ; người khác đọc → 403; id lạ → 404; `read-all` xong `unread=true` rỗng.
-  - [ ] Approve một driver (T19) → driver đó nhận `DRIVER_APPROVED`.
-  - [ ] `docker compose stop notify-service`, tạo event, `start` lại → notification xuất hiện (queue durable).
+  - [x] Tạo booking + callback SUCCESS (như T22): customer1 `GET /notifications` có `PAYMENT_COMPLETED`; driver1, driver2, driver5 mỗi người có **đúng 1** `BOOKING_OFFER` (driver3/4 không có). Replay cùng event không tạo trùng.
+  - [x] `GET /notifications?unread=true` lọc đúng; `POST /notifications/:id/read` → READ; người khác đọc → 403; id lạ → 404; `read-all` xong `unread=true` rỗng.
+  - [x] Approve một driver (T19) → driver đó nhận `DRIVER_APPROVED`.
+  - [x] `docker compose stop notify-service`, tạo event, `start` lại → notification xuất hiện (queue durable).
 
 #### T24 - Booking: ListMyOffers/Accept/Reject/Cancel + route
 - **Đọc:** §8.4 ListMyOffers/AcceptOffer/RejectOffer/CancelBooking (694-705), §6 dòng `booking.assigned`/`booking.canceled` (383-384), §9.4 hàng booking-offers + cancel (783-786), §10.3 (825-840), §3.5 dòng 410 (124).
@@ -698,3 +698,13 @@ Vòng lặp của mỗi phiên:
 - File đang thay đổi: `gateway/src/server.js`, `gateway/src/controllers/notificationController.js`, `gateway/src/routes/notifications.js`, `gateway/src/schemas/notification.js`, `services/notify-service/migrations/schema.sql`, `services/notify-service/src/server.js`, `services/notify-service/src/grpc/notify.js`, `services/notify-service/src/repositories/notificationRepo.js`, `services/notify-service/src/services/notificationService.js`.
 - Smoke test trước đó có `INVALID_TOKEN` vì JSON inline qua PowerShell/curl bị parse lỗi, token đọc ra rỗng; dùng file JSON UTF-8 không BOM đã đăng nhập và POST booking 201, không phải lỗi JWT.
 - Checkpoint: TC07 đạt; `trip.q` chưa có vì Trip làm ở T25.
+- Rà lại: sửa consumer dùng envelope `payload` chuẩn (không dùng `data`), thêm UUID validation cho Notify và handler gRPC theo pattern service. Docker Desktop Linux engine sau đó không phản hồi 3 lần, nên chưa thể rebuild/nghiệm thu tiếp.
+- Checkpoint: Lô 1 BLOCKED sau 3 lần có callback SUCCESS: Booking tạo đủ 3 offers và queue tap nhận đúng 3 `booking.offer.created`, nhưng Notify không tạo `BOOKING_OFFER` cho driver 1/2/5. Cùng consumer nhận event publish trực tiếp và tạo notification, nên cần bắt raw payload từ Booking publisher trước khi tiếp tục; chưa chạy lô 2/3, không tick hay commit.
+- Checkpoint: Gỡ BLOCKED — đã xác minh `notify.q` thực tế bind `booking.*`; event hợp lệ publish vào exchange với routing key `booking.offer.created` không vào Notify DB. Probe cũ dùng exchange `ride.events` nhưng helper hard-code routing key `payment.completed`, nên chỉ vô tình route được. Đổi các binding Notify thành `driver.#`, `payment.#`, `booking.#`, `trip.#` và gỡ binding `*` khi service khởi động; SPEC §6 được sửa cùng lý do.
+- Checkpoint: Lô 1 và Lô 2 đạt — binding Notify dùng `#`; PAYMENT_COMPLETED/ba BOOKING_OFFER đúng recipient và replay idempotent; API notification đạt filter/read/ownership/validation/pagination/auth; approve Driver 216 tạo DRIVER_APPROVED. Đã chạy seed khôi phục Driver 216 PENDING_REVIEW/PENDING, không GEO.
+
+### [2026-10-03] T23 - Notify service + route notifications - HOÀN THÀNH
+- Đã làm: Notify consume/lưu notification idempotent, route polling/read/read-all, và Notification proto trả title/body/data. Sửa lỗi enum `NotificationType` bằng enum chuẩn trong `common.proto`; rà enum đã hoàn tất. `trip.q` chưa có vì Trip thuộc T25.
+- Sửa lỗi SPEC §6: `notify.q` dùng `driver.#`, `payment.#`, `booking.#`, `trip.#`; `*` chỉ khớp một từ nên không nhận `booking.offer.created`. Service chủ động gỡ binding cũ khi khởi động.
+- Nghiệm thu: cả ba lô đạt; `notify.q` durable, Notify down vẫn nhận event sau restart, gRPC thiếu service token trả UNAUTHENTICATED; dữ liệu thử/rate-limit/queue tạm đã dọn, Redis GEO=5, Driver 216 về PENDING_REVIEW/PENDING không GEO, 17 container healthy.
+- Commit: `T23: Notify service + route notifications`.

@@ -10,7 +10,16 @@ service NotifyService {
   rpc MarkAllRead(cab.common.v1.Empty) returns (MarkAllReadResponse);
 }
 
-message Notification { string notification_id = 1; cab.common.v1.NotificationType type = 2; cab.common.v1.NotificationStatus status = 3; string event_id = 4; string created_at = 5; }
+message Notification {
+  string notification_id = 1;
+  cab.common.v1.NotificationType type = 2;
+  cab.common.v1.NotificationStatus status = 3;
+  string event_id = 4;
+  string created_at = 5;
+  string title = 6;
+  string body = 7;
+  string data_json = 8;
+}
 message ListNotificationsRequest { optional bool unread = 1; int32 page = 2; int32 limit = 3; }
 message ListNotificationsResponse { repeated Notification items = 1; cab.common.v1.PageInfo page_info = 2; }
 message MarkReadRequest { string notification_id = 1; }

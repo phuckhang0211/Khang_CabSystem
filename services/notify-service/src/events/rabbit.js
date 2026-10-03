@@ -50,9 +50,12 @@ async function publish(routingKey, payload, correlationId) {
   }
 }
 
-async function consume(queue, bindings, handler) {
+async function consume(queue, bindings, handler, obsoleteBindings = []) {
   const activeChannel = channel || await connectRabbit();
   await activeChannel.assertQueue(queue, { durable: true });
+  for (const routingKey of obsoleteBindings) {
+    await activeChannel.unbindQueue(queue, config.rabbitmqExchange, routingKey);
+  }
   for (const routingKey of bindings) await activeChannel.bindQueue(queue, config.rabbitmqExchange, routingKey);
   await activeChannel.prefetch(10);
   await activeChannel.consume(queue, async (message) => {

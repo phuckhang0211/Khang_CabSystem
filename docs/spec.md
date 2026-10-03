@@ -392,7 +392,7 @@ Routing key = `eventType`.
 |---|---|---|
 | `booking.q` | payment.completed, payment.failed, trip.completed, trip.canceled | completed → mở matching; failed → PAYMENT_FAILED; trip.completed/canceled → đồng bộ Booking |
 | `trip.q` | booking.assigned | tạo Trip nếu chưa có (theo bookingId) |
-| `notify.q` | driver.*, payment.*, booking.*, trip.* | tạo notification theo recipient (§8.7) |
+| `notify.q` | driver.#, payment.#, booking.#, trip.# | tạo notification theo recipient (§8.7). `#` khớp 0..n từ, nên `booking.#` nhận được `booking.offer.created` (ba từ). |
 
 ---
 

@@ -1,0 +1,7 @@
+const { pool } = require('../db/pg');
+const map = r => ({ notificationId:r.id, type:r.type, status:r.status, eventId:r.event_id, createdAt:r.created_at.toISOString(), title:r.title, body:r.body, dataJson:JSON.stringify(r.data || {}) });
+async function insert(n) { await pool.query('INSERT INTO notifications(id,recipient_id,recipient_role,type,title,body,data,event_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (recipient_id,event_id,type) DO NOTHING',[n.id,n.recipientId,n.recipientRole,n.type,n.title,n.body,n.data,n.eventId]); }
+async function list(userId, unread, page, limit) { const count=await pool.query('SELECT count(*) FROM notifications WHERE recipient_id=$1 AND ($2::boolean = false OR status=\'UNREAD\')',[userId,Boolean(unread)]); const rows=await pool.query('SELECT * FROM notifications WHERE recipient_id=$1 AND ($2::boolean = false OR status=\'UNREAD\') ORDER BY created_at DESC LIMIT $3 OFFSET $4',[userId,Boolean(unread),limit,(page-1)*limit]); return {items:rows.rows.map(map),total:Number(count.rows[0].count)}; }
+async function read(id,userId) { const r=await pool.query('SELECT recipient_id FROM notifications WHERE id=$1',[id]); if(!r.rowCount)return 'NOT_FOUND'; if(r.rows[0].recipient_id!==userId)return 'FORBIDDEN'; await pool.query("UPDATE notifications SET status='READ',read_at=now() WHERE id=$1 AND status='UNREAD'",[id]); return 'OK'; }
+async function readAll(userId) { await pool.query("UPDATE notifications SET status='READ',read_at=now() WHERE recipient_id=$1 AND status='UNREAD'",[userId]); }
+module.exports={insert,list,read,readAll};

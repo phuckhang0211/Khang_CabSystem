@@ -12,6 +12,7 @@ const { createCustomerRouter } = require('./routes/customers');
 const { createDriverRouter, createAdminRouter } = require('./routes/drivers');
 const { createPaymentRouter } = require('./routes/payments');
 const { createBookingRouter } = require('./routes/bookings');
+const { createNotificationRouter } = require('./routes/notifications');
 
 const app = express();
 app.set('trust proxy', false);
@@ -43,6 +44,7 @@ apiRouter.use('/drivers', createDriverRouter(clients));
 apiRouter.use('/admin', createAdminRouter(clients));
 apiRouter.use('/payments', createPaymentRouter(clients));
 apiRouter.use('/bookings', createBookingRouter(clients));
+apiRouter.use('/notifications', createNotificationRouter(clients));
 app.use(config.apiPrefix, apiRouter);
 
 app.use((req, res) => sendError(res, req, 404, 'NOT_FOUND', 'Route not found'));

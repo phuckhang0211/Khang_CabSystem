@@ -1,2 +1,3 @@
 -- Notify service schema is added in a later task.
-
+CREATE TABLE IF NOT EXISTS notifications (id UUID PRIMARY KEY, recipient_id UUID NOT NULL, recipient_role VARCHAR(20) NOT NULL CHECK (recipient_role IN ('CUSTOMER','DRIVER','ADMIN')), type VARCHAR(60) NOT NULL CHECK (type IN ('BOOKING_OFFER','BOOKING_ASSIGNED','OFFER_CLOSED','BOOKING_CANCELED','TRIP_ARRIVED','TRIP_STARTED','TRIP_COMPLETED','TRIP_CANCELED','PAYMENT_COMPLETED','PAYMENT_FAILED','DRIVER_APPROVED','DRIVER_REJECTED')), title VARCHAR(160) NOT NULL, body VARCHAR(500) NOT NULL, data JSONB, status VARCHAR(10) NOT NULL DEFAULT 'UNREAD' CHECK (status IN ('UNREAD','READ')), event_id UUID NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), read_at TIMESTAMPTZ, UNIQUE (recipient_id,event_id,type));
+CREATE INDEX IF NOT EXISTS ix_notif_recipient ON notifications(recipient_id,status,created_at);
