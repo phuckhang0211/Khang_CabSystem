@@ -8,10 +8,10 @@
 ## 0. TRẠNG THÁI HIỆN TẠI (Codex cập nhật khối này sau MỖI task)
 
 ```
-Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23
-Task kế tiếp    : T24
-Dở dang / BLOCKED: không
+Task đang làm   : T25
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24
+Task kế tiếp    : T25
+Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
 ```
@@ -88,7 +88,7 @@ Vòng lặp của mỗi phiên:
 - [x] T21 Booking: schema + CreateBooking (idempotency) + Get/List + route
 - [x] T22 Booking: consumer payment.* + matching + offers
 - [x] T23 Notify service + route notifications (TC07)
-- [ ] T24 Booking: ListMyOffers/Accept/Reject/Cancel + route (TC15, 16, 18)
+- [x] T24 Booking: ListMyOffers/Accept/Reject/Cancel + route (TC15, 16, 18)
 
 **E. Trip, Review**
 - [ ] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
@@ -372,12 +372,12 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.4 ListMyOffers/AcceptOffer/RejectOffer/CancelBooking (694-705), §6 dòng `booking.assigned`/`booking.canceled` (383-384), §9.4 hàng booking-offers + cancel (783-786), §10.3 (825-840), §3.5 dòng 410 (124).
 - **Làm:** `ListMyOffers` (resolve driverId bằng `Driver.GetDriver{userId}`; offer `PENDING` của booking đang `SEARCHING_DRIVER`, mới nhất trước); `AcceptOffer` đúng 5 bước §8.4 (404/403/409/410 `OFFER_EXPIRED` = `FAILED_PRECONDITION`, `TryAssignDriver`, transaction conditional UPDATE + `ACCEPTED` + `SUPERSEDED` còn lại, thua → rollback + `ReleaseDriver` + 409; sau commit lấy `driverUserId` của driver bị SUPERSEDED, gọi `Payment.GetPayment` (không chuyển `x-user-id`) lấy `paidAt`, publish `booking.assigned`); `RejectOffer` (reason escape, không tìm thêm tài xế); `CancelBooking{reason 5..200, confirm}` (`CONFIRM_REQUIRED`, chỉ `PAYMENT_PENDING|SEARCHING_DRIVER`, ADMIN → 403, offers PENDING→SUPERSEDED, publish `booking.canceled`, **không refund**). Gateway routes tương ứng.
 - **Nghiệm thu:**
-  - [ ] TC16: driver1 `GET /notifications?unread=true` → `GET /booking-offers/me` → `POST /booking-offers/:id/accept` → 200 `DRIVER_ASSIGNED`; booking có `driver` (safe fields); `[redis]` driver1 `BUSY`; `[rmq-tmp]` thấy `booking.assigned` có `supersededDriverUserIds` (2 phần tử), `paidAt`, `vehicleId`; driver2/5 nhận `OFFER_CLOSED`, customer nhận `BOOKING_ASSIGNED`.
-  - [ ] Driver2 accept offer của mình sau đó → 409; driver2 accept offer của driver khác → 403; offer quá hạn (sửa `expires_at` trong `[psql]`) → 410 `OFFER_EXPIRED`.
-  - [ ] Reject: driver5 reject → `REJECTED`, booking vẫn `SEARCHING_DRIVER`; reject lần 2 → 409.
-  - [ ] Cancel (TC18 phần booking): booking `SEARCHING_DRIVER` → thiếu `confirm` → 400 `CONFIRM_REQUIRED`; đủ → `CANCELED`; offer thành `SUPERSEDED`; `booking.canceled` có `driverUserIds`; payment vẫn `COMPLETED`; cancel booking `DRIVER_ASSIGNED` → 409; admin cancel → 403.
-  - [ ] Accept song song 2 driver (2 lệnh curl chạy `&`) → đúng 1 thắng, 1 nhận 409; booking chỉ 1 `driver_id`.
-  - [ ] Driver gọi `GET /bookings` → 403.
+  - [x] TC16: driver1 `GET /notifications?unread=true` → `GET /booking-offers/me` → `POST /booking-offers/:id/accept` → 200 `DRIVER_ASSIGNED`; booking có `driver` (safe fields); `[redis]` driver1 `BUSY`; `[rmq-tmp]` thấy `booking.assigned` có `supersededDriverUserIds` (2 phần tử), `paidAt`, `vehicleId`; driver2/5 nhận `OFFER_CLOSED`, customer nhận `BOOKING_ASSIGNED`.
+  - [x] Driver2 accept offer của mình sau đó → 409; driver2 accept offer của driver khác → 403; offer quá hạn (sửa `expires_at` trong `[psql]`) → 410 `OFFER_EXPIRED`.
+  - [x] Reject: driver5 reject → `REJECTED`, booking vẫn `SEARCHING_DRIVER`; reject lần 2 → 409.
+  - [x] Cancel (TC18 phần booking): booking `SEARCHING_DRIVER` → thiếu `confirm` → 400 `CONFIRM_REQUIRED`; đủ → `CANCELED`; offer thành `SUPERSEDED`; `booking.canceled` có `driverUserIds`; payment vẫn `COMPLETED`; cancel booking `DRIVER_ASSIGNED` → 409; admin cancel → 403.
+  - [x] Accept song song 2 driver (2 lệnh curl chạy `&`) → đúng 1 thắng, 1 nhận 409; booking chỉ 1 `driver_id`.
+  - [x] Driver gọi `GET /bookings` → 403.
   - Lưu ý: chuyến `DRIVER_ASSIGNED` này sẽ dùng tiếp ở T25-T26 (chưa có Trip thì mới thấy event `booking.assigned` chờ trong `trip.q` sau T25).
 
 ### E. Trip, Review
@@ -708,3 +708,17 @@ Vòng lặp của mỗi phiên:
 - Sửa lỗi SPEC §6: `notify.q` dùng `driver.#`, `payment.#`, `booking.#`, `trip.#`; `*` chỉ khớp một từ nên không nhận `booking.offer.created`. Service chủ động gỡ binding cũ khi khởi động.
 - Nghiệm thu: cả ba lô đạt; `notify.q` durable, Notify down vẫn nhận event sau restart, gRPC thiếu service token trả UNAUTHENTICATED; dữ liệu thử/rate-limit/queue tạm đã dọn, Redis GEO=5, Driver 216 về PENDING_REVIEW/PENDING không GEO, 17 container healthy.
 - Commit: `T23: Notify service + route notifications`.
+
+### [2026-10-03] T24 - Booking offers/accept/cancel - DỞ DANG
+- Đã làm trước checkpoint: Booking `ListMyOffers`/`AcceptOffer`/`RejectOffer`/`CancelBooking` và route Gateway; Gateway đã chuyển yêu cầu cancel thiếu `confirm` đến service để trả `CONFIRM_REQUIRED`, rồi rebuild. Mười smoke test cơ bản đã PASS.
+- BLOCKED: Docker Desktop Linux engine từ chối kết nối `npipe:////./pipe/dockerDesktopLinuxEngine` sau 3 lần `docker version`; chưa chạy được seed, kiểm tra Redis hay các nhóm nghiệm thu A–G. Không đổi mã nguồn, không tick T24, không commit.
+- Checkpoint: phiên tiếp tục sau đó vẫn gặp cùng lỗi Docker sau 3 lần kiểm tra; chưa thực hiện lại 10 smoke test đã PASS và vẫn bắt đầu từ nghiệm thu nhóm A khi Docker hoạt động.
+- Checkpoint: tiếp tục nghiệm thu cuối vẫn bị `permission denied` tại `npipe:////./pipe/dockerDesktopLinuxEngine` sau 3 lần `docker version`; chưa thể tạo file kết quả tạm, chạy seed, hoặc thực hiện A–G. Giữ nguyên mã nguồn và không commit.
+- Checkpoint: Docker Desktop đã hoạt động lại (`docker version` và đủ 17 container healthy); trạng thái T24 là DỞ DANG, các lần lỗi named pipe trước không tính vào bộ đếm BLOCKED. Tiếp tục từ Bước 1.
+- Checkpoint: nhóm A chưa đạt; đã xác minh accept chuyển booking sang `DRIVER_ASSIGNED`, 1 offer `ACCEPTED`/2 `SUPERSEDED` và 4 notification hậu accept. Harness lượt đầu đọc nhầm `ListMyOffers.data.items`; đã sửa, nhưng cần chạy lại với queue tap để kiểm envelope `booking.assigned` trước khi ghi đạt.
+
+### [2026-10-03] T24 - Booking offers/accept/cancel - HOÀN THÀNH
+- Đã làm: `ListMyOffers`, `AcceptOffer`, `RejectOffer`, `CancelBooking` và route Gateway tương ứng.
+- Sửa lỗi nghiệm thu: race hai accept từng có thể deadlock do `FOR UPDATE` trên hai offer khác nhau và trả 503. Repository nay quyết định thắng/thua bằng conditional update Booking, nên bên thua release Redis driver và nhận 409. Seed cũng xóa `currentBookingId`/`currentTripId` để khôi phục state Redis đúng sau test.
+- Nghiệm thu: A–G đạt, gồm event envelope/recipient Notify, các lỗi 400/401/403/404/409/410, cancel, hai race, gRPC thiếu service token và dọn dữ liệu; 17 container healthy. Seed từ host cần debug overlay.
+- Commit: `T24: Booking offers/accept/reject/cancel`.

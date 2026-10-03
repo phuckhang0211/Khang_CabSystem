@@ -157,6 +157,7 @@ async function seedRedis() {
         y = lat + dy,
         x = lng + dx;
       await r.hset(`driver:${d}:state`, "workStatus", w, "availability", a);
+      await r.hdel(`driver:${d}:state`, "currentBookingId", "currentTripId");
       await r.geoadd("drivers:geo", x, y, d);
       await r.hset(
         `driver:${d}:location`,

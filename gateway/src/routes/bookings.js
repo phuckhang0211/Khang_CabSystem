@@ -30,6 +30,7 @@ function createBookingRouter(c) {
     validate(s.id, "params"),
     x.get,
   );
+  r.post('/:id/cancel', authenticate, allow('CUSTOMER'), validate(s.id, 'params'), validate(s.cancel), x.cancel);
   return r;
 }
 module.exports = { createBookingRouter };

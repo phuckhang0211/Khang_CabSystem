@@ -6,6 +6,8 @@ const meta = (r) => ({
   userRole: r.user.role,
 });
 function createBookingController(clients) {
+  const safeDriver = (driver) => driver && ({ driverId: driver.driverId, fullName: driver.fullName, workStatus: driver.workStatus, availability: driver.availability, vehicle: { plateNumber: driver.vehicle.plateNumber, vehicleType: driver.vehicle.vehicleType, brand: driver.vehicle.brand, model: driver.vehicle.model, color: driver.vehicle.color } });
+  const booking = (value) => ({ ...value, driver: safeDriver(value.driver) });
   return {
     create: async (r, s, n) => {
       const k = r.get("Idempotency-Key");
@@ -35,11 +37,11 @@ function createBookingController(clients) {
       try {
         return sendData(
           s,
-          await clients.booking.call(
+          booking(await clients.booking.call(
             "getBooking",
             { bookingId: r.params.id },
             meta(r),
-          ),
+          )),
         );
       } catch (e) {
         return n(e);
@@ -48,7 +50,7 @@ function createBookingController(clients) {
     list: async (r, s, n) => {
       try {
         const x = await clients.booking.call("listBookings", r.query, meta(r));
-        return sendPaginated(s, x.items, {
+        return sendPaginated(s, x.items.map(booking), {
           page: x.pageInfo.page,
           limit: x.pageInfo.limit,
           total: x.pageInfo.total,
@@ -58,6 +60,10 @@ function createBookingController(clients) {
         return n(e);
       }
     },
+    listOffers: async (r, s, n) => { try { return sendData(s, await clients.booking.call('listMyOffers', {}, meta(r))); } catch (e) { return n(e); } },
+    accept: async (r, s, n) => { try { return sendData(s, await clients.booking.call('acceptOffer', { offerId: r.params.id }, meta(r))); } catch (e) { return n(e); } },
+    reject: async (r, s, n) => { try { return sendData(s, await clients.booking.call('rejectOffer', { offerId: r.params.id, ...r.body }, meta(r))); } catch (e) { return n(e); } },
+    cancel: async (r, s, n) => { try { return sendData(s, await clients.booking.call('cancelBooking', { bookingId: r.params.id, ...r.body }, meta(r))); } catch (e) { return n(e); } },
   };
 }
 module.exports = { createBookingController };
