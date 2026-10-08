@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27
-Task kế tiếp    : T28
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28
+Task kế tiếp    : T29
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -94,7 +94,7 @@ Vòng lặp của mỗi phiên:
 - [x] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
 - [x] T26 Trip: Arrive/Start/UpdateLocation/Complete + event (TC17)
 - [x] T27 Trip: Cancel + Booking consume trip.completed/canceled (TC18)
-- [ ] T28 Customer: Reviews + route (TC20)
+- [x] T28 Customer: Reviews + route (TC20)
 
 **F. Seed B, test, tài liệu, nghiệm thu cuối**
 - [ ] T29 Seed phần B (booking, payment, trip, review) (TC14)
@@ -414,9 +414,9 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.2 CreateReview/ListReviews (649-650), §9.4 hàng reviews (796-797), §3.6 dòng Customer→Trip.GetTrip (140), §11 BR20 (862).
 - **Làm:** `CreateReview{tripId,rating 1..5,comment ≤500}` (role CUSTOMER; gọi `Trip.GetTrip` **chuyển tiếp** `x-user-id/x-user-role`; 404; `trip.customerId != x-user-id` → 403; trip chưa `COMPLETED` → 409 `STATE_CONFLICT`; trùng → 409 `ALREADY_EXISTS`; lưu `customer_id=x-user-id`, `driver_id=trip.driverId`; escapeHtml comment); `ListReviews{tripId}` (thiếu → 400, phân trang). Gateway: `POST /reviews`, `GET /reviews?tripId=`.
 - **Nghiệm thu:**
-  - [ ] TC20: review trip `COMPLETED` rating 5 → 201; lặp lại → 409; rating 6 → 400; trip chưa completed → 409; customer khác → 403; driver gọi `POST /reviews` → 403.
-  - [ ] `GET /reviews?tripId=<id>` có review, có `pagination`; thiếu `tripId` → 400.
-  - [ ] `comment="<script>alert('hack')</script>"` lưu/trả dạng escape (TC26).
+  - [x] TC20: review trip `COMPLETED` rating 5 → 201; lặp lại → 409; rating 6 → 400; trip chưa completed → 409; customer khác → 403; driver gọi `POST /reviews` → 403.
+  - [x] `GET /reviews?tripId=<id>` có review, có `pagination`; thiếu `tripId` → 400.
+  - [x] `comment="<script>alert('hack')</script>"` lưu/trả dạng escape (TC26).
 
 ### F. Seed B, test, tài liệu, nghiệm thu cuối
 
@@ -754,3 +754,15 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: 8 flow mới, 3 race cancel/start, race hai cancel; quyền/validation/XSS/replay/event/notification/payment/Redis đều đạt. Sau chỉnh prefetch=10, hai flow hồi quy complete/cancel đạt. Đã dọn dữ liệu, seed và Redis baseline khôi phục.
 - Lỗi đã sửa: hai điều kiện trong script tạm đã đọc nhầm cancelReason từ REST Booking; SPEC chỉ yêu cầu lưu cột trong booking_db. Kiểm chứng lại bằng SQL, sản phẩm không lỗi.
 - Giả định: proto Trip thiếu ba field canceledAt/canceledBy/cancelReason, bổ sung 24..26; reason sau escape HTML phải vừa cột 200 ký tự.
+
+### [2026-10-08] T28 - Customer reviews + route - DỞ DANG
+- Checkpoint: pre-check clean, 17 container healthy; bookings/offers/idempotency/payments/notifications/trips/reviews đều 0. Dòng FAIL T27 do harness đọc cancelReason từ REST Booking; journal T27 đã ghi rõ, phép kiểm SQL sau đó PASS. Đã dọn profile 7d095b11 và Auth user 9a500c8f ngoài seed theo ID; giữ profile seed 111/112.
+- Checkpoint: TC20 và các nhánh 400/401/403/404/409, list bốn vai trò, 500 ký tự, XSS, race 201/409, gRPC token/role, hồi quy customer/trip đều đạt. Dòng FAIL ban đầu do helper t24-lib không trả pagination dù HTTP response có; đã sửa helper và chạy lại toàn bộ script đạt.
+
+### [2026-10-08 19:37] T28 - Customer reviews + route - HOÀN THÀNH
+- Commit: `T28: Customer reviews + gateway routes`.
+- Đã làm: Customer.CreateReview/ListReviews, client Customer→Trip chuyển tiếp danh tính, SQL reviews và POST/GET /reviews; không đổi schema hay proto.
+- Nghiệm thu: TC20, validation, ownership, phân trang bốn vai trò, comment 500, XSS, race 201/409 và gRPC auth/role đều đạt; GET/PATCH customer và GET trip hồi quy 200. 17 container healthy, /ready=200; bảy bảng test về 0, profile seed còn 2, Redis baseline đúng.
+- Xác nhận T27: FAIL cũ do harness đọc cancelReason từ REST Booking thay vì cột DB; SQL sau replay xác nhận status/reason/canceled_at không đổi. Flow mới driver cancel cho SQL canceled_by=DRIVER và Booking CANCELED.
+- Lỗi đã sửa: helper t24-lib không mang pagination vào kết quả nên assertion list ban đầu FAIL dù HTTP response đúng; đã sửa helper tạm và chạy lại toàn bộ script PASS.
+- Giả định: Customer dùng TRIP_GRPC_ADDR nhưng không thêm depends_on để tránh vòng Customer→Trip→Driver→Auth→Customer; REST reviews dùng data.items theo yêu cầu T28, đã ghi khác biệt với SPEC §3.4 trong README.
