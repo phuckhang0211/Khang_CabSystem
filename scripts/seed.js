@@ -176,16 +176,129 @@ async function seedRedis() {
     await r.quit();
   }
 }
+const history = [
+  [301, 101, 10.7800, 106.6720, 2.40, 12000, "COMPLETED", 211, 3],
+  [302, 101, 10.7900, 106.6800, 4.10, 20500, "COMPLETED", 212, 6],
+  [303, 101, 10.7700, 106.6740, 1.80, 9000, "CANCELED", 211, 9],
+  [304, 101, 10.7830, 106.6780, 3.00, 15000, "CANCELED", null, 12],
+  [305, 101, 10.8000, 106.6900, 5.20, 26000, "NO_DRIVER_FOUND", null, 15],
+  [306, 101, 10.7820, 106.6700, 2.70, 13500, "PAYMENT_FAILED", null, 18],
+  [307, 102, 10.7770, 106.6700, 2.10, 10500, "COMPLETED", 212, 4],
+];
+const at = (hour, minute = 0) =>
+  new Date(Date.UTC(2026, 8, 30, hour, minute)).toISOString();
+
+async function seedBooking() {
+  const c = db("BOOKING");
+  await c.connect();
+  try {
+    for (const [n, customer, destLat, destLng, distance, fare, status, driver, hour] of history) {
+      await c.query(
+        `INSERT INTO bookings(id,customer_id,driver_id,payment_id,pickup_lat,pickup_lng,pickup_address,dest_lat,dest_lng,dest_address,distance_km,fare,status,assigned_at,canceled_at,cancel_reason,created_at,updated_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+         ON CONFLICT(id) DO UPDATE SET customer_id=EXCLUDED.customer_id,driver_id=EXCLUDED.driver_id,payment_id=EXCLUDED.payment_id,pickup_lat=EXCLUDED.pickup_lat,pickup_lng=EXCLUDED.pickup_lng,pickup_address=EXCLUDED.pickup_address,dest_lat=EXCLUDED.dest_lat,dest_lng=EXCLUDED.dest_lng,dest_address=EXCLUDED.dest_address,distance_km=EXCLUDED.distance_km,fare=EXCLUDED.fare,status=EXCLUDED.status,assigned_at=EXCLUDED.assigned_at,canceled_at=EXCLUDED.canceled_at,cancel_reason=EXCLUDED.cancel_reason,created_at=EXCLUDED.created_at,updated_at=EXCLUDED.updated_at`,
+        [id(n), id(customer), driver && id(driver), id(n + 100), 10.7626, 106.6602, null,
+          destLat, destLng, null, distance, fare, status,
+          driver ? at(hour, 10) : null, status === "CANCELED" ? at(hour, 30) : null,
+          n === 303 ? "Khách thay đổi kế hoạch" : n === 304 ? "Khách hủy đặt xe" : null,
+          at(hour), at(hour, 50)],
+      );
+    }
+  } finally {
+    await c.end();
+  }
+}
+
+async function seedPayment() {
+  const c = db("PAYMENT");
+  await c.connect();
+  try {
+    for (const [n, customer, , , , fare, , , hour] of history) {
+      const failed = n === 306;
+      await c.query(
+        `INSERT INTO payments(id,booking_id,customer_id,amount,currency,provider,status,provider_txn_id,payment_url,failure_code,created_at,paid_at,failed_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+         ON CONFLICT(id) DO UPDATE SET booking_id=EXCLUDED.booking_id,customer_id=EXCLUDED.customer_id,amount=EXCLUDED.amount,currency=EXCLUDED.currency,provider=EXCLUDED.provider,status=EXCLUDED.status,provider_txn_id=EXCLUDED.provider_txn_id,payment_url=EXCLUDED.payment_url,failure_code=EXCLUDED.failure_code,created_at=EXCLUDED.created_at,paid_at=EXCLUDED.paid_at,failed_at=EXCLUDED.failed_at`,
+        [id(n + 100), id(n), id(customer), fare, "VND", "MOCK", failed ? "FAILED" : "COMPLETED",
+          failed ? null : `SEED-TXN-${n + 100}`, `mock://pay/${id(n + 100)}`,
+          failed ? "SEED_PAYMENT_FAILED" : null, at(hour, 1), failed ? null : at(hour, 5), failed ? at(hour, 5) : null],
+      );
+    }
+  } finally {
+    await c.end();
+  }
+}
+
+async function seedTrip() {
+  const c = db("TRIP");
+  await c.connect();
+  try {
+    for (const [n, customer, destLat, destLng, , fare, , driver, hour] of history.filter((row) => [301, 302, 303, 307].includes(row[0]))) {
+      const canceled = n === 303;
+      await c.query(
+        `INSERT INTO trips(id,booking_id,customer_id,driver_id,vehicle_id,payment_id,fare,status,payment_status,paid_at,last_lat,last_lng,location_updated_at,end_lat,end_lng,arrived_at,started_at,completed_at,canceled_at,canceled_by,cancel_reason,created_at,updated_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+         ON CONFLICT(id) DO UPDATE SET booking_id=EXCLUDED.booking_id,customer_id=EXCLUDED.customer_id,driver_id=EXCLUDED.driver_id,vehicle_id=EXCLUDED.vehicle_id,payment_id=EXCLUDED.payment_id,fare=EXCLUDED.fare,status=EXCLUDED.status,payment_status=EXCLUDED.payment_status,paid_at=EXCLUDED.paid_at,last_lat=EXCLUDED.last_lat,last_lng=EXCLUDED.last_lng,location_updated_at=EXCLUDED.location_updated_at,end_lat=EXCLUDED.end_lat,end_lng=EXCLUDED.end_lng,arrived_at=EXCLUDED.arrived_at,started_at=EXCLUDED.started_at,completed_at=EXCLUDED.completed_at,canceled_at=EXCLUDED.canceled_at,canceled_by=EXCLUDED.canceled_by,cancel_reason=EXCLUDED.cancel_reason,created_at=EXCLUDED.created_at,updated_at=EXCLUDED.updated_at`,
+        [id(n + 200), id(n), id(customer), id(driver), id(driver + 590), id(n + 100), fare,
+          canceled ? "CANCELED" : "COMPLETED", "PAID", at(hour, 5),
+          canceled ? null : destLat, canceled ? null : destLng, canceled ? null : at(hour, 40),
+          canceled ? null : destLat, canceled ? null : destLng, at(hour, 20),
+          canceled ? null : at(hour, 30), canceled ? null : at(hour, 50),
+          canceled ? at(hour, 30) : null, canceled ? "CUSTOMER" : null,
+          canceled ? "Khách thay đổi kế hoạch" : null, at(hour, 10), at(hour, 50)],
+      );
+    }
+  } finally {
+    await c.end();
+  }
+}
+
+async function seedOffer() {
+  const c = db("BOOKING");
+  await c.connect();
+  try {
+    for (const [offer, booking, driver, hour] of [[701, 301, 211, 3], [702, 302, 212, 6], [703, 303, 211, 9], [704, 307, 212, 4]]) {
+      await c.query(
+        `INSERT INTO booking_offers(id,booking_id,driver_id,status,expires_at,responded_at,reject_reason,created_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT(id) DO UPDATE SET booking_id=EXCLUDED.booking_id,driver_id=EXCLUDED.driver_id,status=EXCLUDED.status,expires_at=EXCLUDED.expires_at,responded_at=EXCLUDED.responded_at,reject_reason=EXCLUDED.reject_reason,created_at=EXCLUDED.created_at`,
+        [id(offer), id(booking), id(driver), "ACCEPTED", at(hour, 15), at(hour, 10), null, at(hour, 7)],
+      );
+    }
+  } finally {
+    await c.end();
+  }
+}
+
+async function seedReview() {
+  const c = db("CUSTOMER");
+  await c.connect();
+  try {
+    await c.query(
+      `INSERT INTO reviews(id,trip_id,customer_id,driver_id,rating,comment,created_at)
+       VALUES($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT(id) DO UPDATE SET trip_id=EXCLUDED.trip_id,customer_id=EXCLUDED.customer_id,driver_id=EXCLUDED.driver_id,rating=EXCLUDED.rating,comment=EXCLUDED.comment,created_at=EXCLUDED.created_at`,
+      [id(601), id(501), id(101), id(211), 5, null, at(3, 55)],
+    );
+  } finally {
+    await c.end();
+  }
+}
 async function main() {
   await seedAuth();
   await seedCustomer();
   await seedDriver();
   await seedRedis();
-  console.log("Seed complete: auth=9 customer=2 driver=6 redis=5");
+  await seedBooking();
+  await seedPayment();
+  await seedTrip();
+  await seedOffer();
+  await seedReview();
+  console.log("Seed complete: auth=9 customer=2 driver=6 booking=7 payment=7 trip=4 offer=4 review=1 redis=5");
 }
 if (require.main === module)
   main().catch((e) => {
     console.error(`Seed failed: ${e.message}`);
     process.exit(1);
   });
-module.exports = { seedAuth, seedCustomer, seedDriver, seedRedis };
+module.exports = { seedAuth, seedCustomer, seedDriver, seedRedis, seedBooking, seedPayment, seedTrip, seedOffer, seedReview };

@@ -9,12 +9,14 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28
-Task kế tiếp    : T29
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29
+Task kế tiếp    : T30
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
 ```
+
+Baseline từ T29: bookings=7, payments=7, trips=4, booking_offers=4, reviews=1, customer_profiles=2; notifications=0, idempotency_keys=0. Các task sau chỉ xóa dữ liệu test theo ID đã ghi, không TRUNCATE hay xóa ID seed 301–307, 401–407, 501/502/503/507, 701–704, 601; chạy lại seed rồi đếm lại.
 
 ---
 
@@ -97,7 +99,7 @@ Vòng lặp của mỗi phiên:
 - [x] T28 Customer: Reviews + route (TC20)
 
 **F. Seed B, test, tài liệu, nghiệm thu cuối**
-- [ ] T29 Seed phần B (booking, payment, trip, review) (TC14)
+- [x] T29 Seed phần B (booking, payment, trip, review) (TC14)
 - [ ] T30 Postman phần 1 (Health → Booking+Payment)
 - [ ] T31 Postman phần 2 (Offer → Security)
 - [ ] T32 `huong-dan-test/TC01..TC10.md`
@@ -424,9 +426,9 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §12.3 (899-917), §12 phần đầu (868-870).
 - **Làm:** thêm vào `scripts/seed.js` các hàm `seedBooking(), seedPayment(), seedTrip(), seedReview()` đúng bảng §12.3: 7 booking (301-307), payments 401-407 (`provider_txn_id` dạng `SEED-TXN-4xx`, 406 `FAILED`), trips 501/502/503/507, offers ACCEPTED 701-704, review 601. `customer_id` = Auth user_id (101/102). `created_at` đúng mốc. Không seed booking đang hoạt động. Idempotent `ON CONFLICT (id) DO UPDATE`.
 - **Nghiệm thu** (compose debug + `docker compose down -v` rồi up lại để dữ liệu sạch):
-  - [ ] `node scripts/seed.js` chạy 2 lần không lỗi; `[psql]` đếm bookings=7, payments=7, trips=4, booking_offers=4, reviews=1.
-  - [ ] TC14: customer1 `GET /bookings?page=1&limit=3` → `total=6`, `totalPages=2`, 3 dòng mới nhất; `?status=COMPLETED` → 2 dòng; `GET /bookings/00000000-0000-0000-0000-000000000307` → 403; customer2 xem 307 → 200.
-  - [ ] `GET /trips/<503>` `CANCELED`, `canceledBy=CUSTOMER`; `GET /reviews?tripId=<501>` có review 601.
+  - [x] `node scripts/seed.js` chạy 2 lần không lỗi; `[psql]` đếm bookings=7, payments=7, trips=4, booking_offers=4, reviews=1.
+  - [x] TC14: customer1 `GET /bookings?page=1&limit=3` → `total=6`, `totalPages=2`, 3 dòng mới nhất; `?status=COMPLETED` → 2 dòng; `GET /bookings/00000000-0000-0000-0000-000000000307` → 403; customer2 xem 307 → 200.
+  - [x] `GET /trips/<503>` `CANCELED`, `canceledBy=CUSTOMER`; `GET /reviews?tripId=<501>` có review 601.
   - Ghi log: **không tạo booking mới cho customer1 trước khi chạy xong TC14** (như SPEC §12.3).
 
 #### T30 - Postman phần 1 (Health → Booking + Payment)
@@ -766,3 +768,15 @@ Vòng lặp của mỗi phiên:
 - Xác nhận T27: FAIL cũ do harness đọc cancelReason từ REST Booking thay vì cột DB; SQL sau replay xác nhận status/reason/canceled_at không đổi. Flow mới driver cancel cho SQL canceled_by=DRIVER và Booking CANCELED.
 - Lỗi đã sửa: helper t24-lib không mang pagination vào kết quả nên assertion list ban đầu FAIL dù HTTP response đúng; đã sửa helper tạm và chạy lại toàn bộ script PASS.
 - Giả định: Customer dùng TRIP_GRPC_ADDR nhưng không thêm depends_on để tránh vòng Customer→Trip→Driver→Auth→Customer; REST reviews dùng data.items theo yêu cầu T28, đã ghi khác biệt với SPEC §3.4 trong README.
+
+### [2026-10-08] T29 - Seed phần B - DỞ DANG
+- Checkpoint: precheck Git sạch, T28 đã commit, Docker có 17 container healthy; bảy bảng test đều 0 và customer_profiles=2. FAIL list reviews T28 do helper tạm bỏ trường pagination, journal T28 đã ghi rõ.
+- Checkpoint: reset volume dev, rebuild 17 container, seed hai lần không lỗi; SQL counts và TC14/API lịch sử đạt. Không tạo booking mới cho customer1 trước khi chạy xong TC14. Lượt harness đầu đọc Booking list từ `data.items` nhưng API hiện trả mảng ở `data`; đã sửa assertion tạm và chạy lại toàn bộ đạt, không phải lỗi service.
+- Checkpoint: flow hồi quy booking→callback→accept→arrive→start→complete→review đạt; xóa bản ghi test theo ID, chạy lại seed và đạt baseline mới. Compose thường: 17 container healthy, `/ready` 200.
+
+### [2026-10-08 19:44] T29 - Seed phần B - HOÀN THÀNH
+- Commit: `T29: Seed part B booking/payment/trip/review`.
+- Đã làm: thêm `seedBooking/seedPayment/seedTrip/seedOffer/seedReview`, dữ liệu lịch sử đúng ID và mốc §12.3, upsert theo ID, README seed và baseline mới.
+- Nghiệm thu: seed hai lần, TC14 trước khi tạo Booking mới cho Customer1, API Booking/Trip/Payment/Review/Offer, Redis, flow hồi quy và dọn theo ID đều đạt. Dữ liệu cuối khớp baseline mới; 17 container healthy và `/ready` 200.
+- Xác nhận T28: dòng FAIL list reviews do helper tạm bỏ trường `pagination`; HTTP response đúng, đã sửa harness T28 và chạy lại PASS. Lượt FAIL TC14 của T29 cũng do harness đọc `data.items` thay vì mảng `data`; đã sửa và chạy lại PASS.
+- Giả định: địa chỉ lịch sử NULL, Payment 406 có failure_code SEED_PAYMENT_FAILED; mốc phụ tăng dần cùng ngày và được ghi ở README.
