@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26
-Task kế tiếp    : T27
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27
+Task kế tiếp    : T28
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -93,7 +93,7 @@ Vòng lặp của mỗi phiên:
 **E. Trip, Review**
 - [x] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
 - [x] T26 Trip: Arrive/Start/UpdateLocation/Complete + event (TC17)
-- [ ] T27 Trip: Cancel + Booking consume trip.completed/canceled (TC18)
+- [x] T27 Trip: Cancel + Booking consume trip.completed/canceled (TC18)
 - [ ] T28 Customer: Reviews + route (TC20)
 
 **F. Seed B, test, tài liệu, nghiệm thu cuối**
@@ -405,10 +405,10 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.6 Cancel (725), §8.4 dòng consumer trip (692), §6 dòng trip.canceled (388), §9.4 hàng cancel (793), §11 BR17 (860).
 - **Làm:** `Cancel{reason 5..200, confirm}` (participant: customer chủ trip hoặc driver được gán; ADMIN → 403; `confirm!==true` → `CONFIRM_REQUIRED`; chỉ `DRIVER_ARRIVING|DRIVER_ARRIVED`, nếu khác → `ABORTED` `TRIP_CANNOT_BE_CANCELED`; `canceled_by` suy từ role; escapeHtml reason; `ReleaseDriver`; publish `trip.canceled`). Booking consumer: `trip.completed` → `DRIVER_ASSIGNED→COMPLETED`; `trip.canceled` → `DRIVER_ASSIGNED→CANCELED` (`canceled_at`, `cancel_reason`, không publish thêm). Notify `trip.canceled` gửi cho **cả customer và driverUserId**.
 - **Nghiệm thu:**
-  - [ ] Sau complete (T26) `GET /bookings/:id` → `COMPLETED`.
-  - [ ] TC18 phần trip: tạo flow mới tới `DRIVER_ASSIGNED`, customer `POST /trips/:id/cancel` thiếu confirm → 400; đủ → trip `CANCELED`, `canceled_by=CUSTOMER`, booking `CANCELED`, driver `AVAILABLE`, **cả hai bên** có `TRIP_CANCELED`, payment vẫn `COMPLETED`.
-  - [ ] Flow khác: driver cancel → `canceled_by=DRIVER`. Cancel khi `IN_PROGRESS` → 409 `TRIP_CANNOT_BE_CANCELED`; admin cancel → 403.
-  - [ ] Event `trip.completed/canceled` lặp lại không làm đổi trạng thái lần hai.
+  - [x] Sau complete (T26) `GET /bookings/:id` → `COMPLETED`.
+  - [x] TC18 phần trip: tạo flow mới tới `DRIVER_ASSIGNED`, customer `POST /trips/:id/cancel` thiếu confirm → 400; đủ → trip `CANCELED`, `canceled_by=CUSTOMER`, booking `CANCELED`, driver `AVAILABLE`, **cả hai bên** có `TRIP_CANCELED`, payment vẫn `COMPLETED`.
+  - [x] Flow khác: driver cancel → `canceled_by=DRIVER`. Cancel khi `IN_PROGRESS` → 409 `TRIP_CANNOT_BE_CANCELED`; admin cancel → 403.
+  - [x] Event `trip.completed/canceled` lặp lại không làm đổi trạng thái lần hai.
 
 #### T28 - Customer: Reviews + route
 - **Đọc:** §8.2 CreateReview/ListReviews (649-650), §9.4 hàng reviews (796-797), §3.6 dòng Customer→Trip.GetTrip (140), §11 BR20 (862).
@@ -743,3 +743,14 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: hai flow mới (một TC17, một race); một arrive 200 và một 409 khi gọi đồng thời; event/notification đúng; driver được giải phóng; gRPC thiếu service token bị từ chối. Các bảng test được dọn về 0 và seed khôi phục, Redis baseline đúng, 17 container healthy.
 - Lỗi đã sửa: script nghiệm thu ban đầu đọc sai `data.items` của API notifications; sửa script tạm và chạy tiếp từ chuyến đã tạo, không phải lỗi sản phẩm.
 - Giả định: proto Trip thiếu các field tọa độ/mốc thời gian được SPEC §8.6 yêu cầu trả ra, bổ sung field 16..23; `booking COMPLETED` sẽ đồng bộ ở T27, hiện vẫn `DRIVER_ASSIGNED`.
+
+### [2026-10-08] T27 - Trip cancel + Booking consume trip events - DỞ DANG
+- Checkpoint: pre-check clean, 17 container healthy; 6 bảng test đều 0 và Redis baseline đúng. T26 README/proto chỉ có ghi chú và field Trip theo SPEC. Notify đã bind `trip.#` và mapping trip.canceled cho cả hai bên.
+- Checkpoint: complete→Booking COMPLETED, customer/driver cancel→Booking CANCELED, Notify hai bên, XSS escaped, event replay idempotent; 3 race cancel/start và race hai cancel đạt. Script nghiệm thu hai lần đọc nhầm field cancelReason từ REST Booking (SPEC chỉ yêu cầu DB); đã đối chiếu DB và sửa script tạm.
+
+### [2026-10-08 19:26] T27 - Trip cancel + Booking consume trip events - HOÀN THÀNH
+- Commit: `T27: Trip cancel + booking consume trip events`.
+- Đã làm: Trip.Cancel gRPC/Gateway, conditional update và event trip.canceled; Booking consumer đồng bộ COMPLETED/CANCELED với retry hữu hạn rồi nack không requeue khi DB lỗi. Notify đã có binding/mapping nên không sửa.
+- Nghiệm thu: 8 flow mới, 3 race cancel/start, race hai cancel; quyền/validation/XSS/replay/event/notification/payment/Redis đều đạt. Sau chỉnh prefetch=10, hai flow hồi quy complete/cancel đạt. Đã dọn dữ liệu, seed và Redis baseline khôi phục.
+- Lỗi đã sửa: hai điều kiện trong script tạm đã đọc nhầm cancelReason từ REST Booking; SPEC chỉ yêu cầu lưu cột trong booking_db. Kiểm chứng lại bằng SQL, sản phẩm không lỗi.
+- Giả định: proto Trip thiếu ba field canceledAt/canceledBy/cancelReason, bổ sung 24..26; reason sau escape HTML phải vừa cột 200 ký tự.

@@ -17,4 +17,8 @@ async function updateLocation(id, lat, lng) {
   const result = await pool.query("UPDATE trips SET last_lat=$2,last_lng=$3,location_updated_at=now(),updated_at=now() WHERE id=$1 AND status='IN_PROGRESS' RETURNING *", [id, lat, lng]);
   return result.rows[0] || null;
 }
-module.exports={insertFromAssigned,get,getByBooking,transition,updateLocation};
+async function cancel(id, canceledBy, reason) {
+  const result = await pool.query("UPDATE trips SET status='CANCELED',canceled_by=$2,canceled_at=now(),cancel_reason=$3,updated_at=now() WHERE id=$1 AND status IN ('DRIVER_ARRIVING','DRIVER_ARRIVED') RETURNING *", [id, canceledBy, reason]);
+  return result.rows[0] || null;
+}
+module.exports={insertFromAssigned,get,getByBooking,transition,updateLocation,cancel};

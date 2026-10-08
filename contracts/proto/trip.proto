@@ -14,7 +14,7 @@ service TripService {
   rpc Cancel(CancelTripRequest) returns (Trip);
 }
 
-message Trip { string trip_id = 1; string booking_id = 2; string customer_id = 3; string driver_id = 4; cab.common.v1.TripStatus status = 5; cab.common.v1.TripPaymentStatus payment_status = 6; string payment_id = 7; string paid_at = 8; int64 fare = 9; string vehicle_id = 10; cab.common.v1.Location pickup = 11; cab.common.v1.Location destination = 12; optional cab.common.v1.Location last_location = 13; optional cab.common.v1.Location end_location = 14; string created_at = 15; optional double last_lat = 16; optional double last_lng = 17; string location_updated_at = 18; optional double end_lat = 19; optional double end_lng = 20; string arrived_at = 21; string started_at = 22; string completed_at = 23; }
+message Trip { string trip_id = 1; string booking_id = 2; string customer_id = 3; string driver_id = 4; cab.common.v1.TripStatus status = 5; cab.common.v1.TripPaymentStatus payment_status = 6; string payment_id = 7; string paid_at = 8; int64 fare = 9; string vehicle_id = 10; cab.common.v1.Location pickup = 11; cab.common.v1.Location destination = 12; optional cab.common.v1.Location last_location = 13; optional cab.common.v1.Location end_location = 14; string created_at = 15; optional double last_lat = 16; optional double last_lng = 17; string location_updated_at = 18; optional double end_lat = 19; optional double end_lng = 20; string arrived_at = 21; string started_at = 22; string completed_at = 23; string canceled_at = 24; string canceled_by = 25; string cancel_reason = 26; }
 message GetTripRequest { string trip_id = 1; }
 message GetTripByBookingRequest { string booking_id = 1; }
 message TripActionRequest { string trip_id = 1; }

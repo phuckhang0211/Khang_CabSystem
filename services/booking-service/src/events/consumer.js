@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 const repo = require('../repositories/bookingRepo');
 const driver = require('../clients/driverClient');
 const { publish } = require('./rabbit');
+const { isUuid } = require('../utils/uuid');
 
 const RETRIES = 3;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,6 +21,10 @@ function validPaymentEvent(event) {
   return event && typeof event.correlationId === 'string' && event.payload &&
     typeof event.payload.bookingId === 'string' &&
     (event.eventType !== 'payment.completed' || typeof event.payload.paymentId === 'string');
+}
+function validTripEvent(event) {
+  return event && event.payload && isUuid(event.payload.bookingId) &&
+    (event.eventType !== 'trip.canceled' || typeof event.payload.reason === 'string');
 }
 
 function pickup(row) { return { lat: Number(row.pickup_lat), lng: Number(row.pickup_lng), address: row.pickup_address || '' }; }
@@ -56,7 +61,8 @@ async function handleCompleted(event) {
 async function handle(event) {
   if (event.eventType === 'payment.completed') { if (!validPaymentEvent(event)) return false; await handleCompleted(event); return true; }
   if (event.eventType === 'payment.failed') { if (!validPaymentEvent(event)) return false; await retry(() => repo.markPaymentFailed(event.payload.bookingId)); return true; }
-  if (event.eventType === 'trip.completed' || event.eventType === 'trip.canceled') { logger.info(`${event.eventType} deferred until T27`, event.correlationId); return true; }
+  if (event.eventType === 'trip.completed') { if (!validTripEvent(event)) return false; await retry(() => repo.markTripCompleted(event.payload.bookingId)); return true; }
+  if (event.eventType === 'trip.canceled') { if (!validTripEvent(event)) return false; await retry(() => repo.markTripCanceled(event.payload.bookingId, event.payload.reason)); return true; }
   return false;
 }
 
@@ -66,9 +72,10 @@ function startConsumer(consume) {
       const handled = await handle(event);
       if (!handled) logger.warn('Invalid or unsupported booking event acknowledged', event && event.correlationId);
     } catch (_) {
+      if (event && (event.eventType === 'trip.completed' || event.eventType === 'trip.canceled')) throw _;
       logger.error('Booking event failed after retries and was acknowledged', event && event.correlationId);
     }
-  }, { prefetch: 5 });
+  }, { prefetch: 10 });
 }
 
 module.exports = { startConsumer };

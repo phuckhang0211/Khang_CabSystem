@@ -70,6 +70,14 @@ async function markNoDriverFound(id) {
   );
   return r.rowCount === 1;
 }
+async function markTripCompleted(bookingId) {
+  const result = await pool.query("UPDATE bookings SET status='COMPLETED',updated_at=now() WHERE id=$1 AND status='DRIVER_ASSIGNED' RETURNING id", [bookingId]);
+  return result.rowCount === 1;
+}
+async function markTripCanceled(bookingId, reason) {
+  const result = await pool.query("UPDATE bookings SET status='CANCELED',canceled_at=now(),cancel_reason=$2,updated_at=now() WHERE id=$1 AND status='DRIVER_ASSIGNED' RETURNING id", [bookingId, reason]);
+  return result.rowCount === 1;
+}
 async function createOffers(bookingId, drivers, offerTtlSeconds) {
   const client = await pool.connect();
   try {
@@ -239,6 +247,8 @@ module.exports = {
   markPaymentFailed,
   markSearching,
   markNoDriverFound,
+  markTripCompleted,
+  markTripCanceled,
   createOffers,
   listOffers,
   getOffer,
