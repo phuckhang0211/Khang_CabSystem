@@ -34,16 +34,18 @@ async function connectRabbit() {
   throw lastError;
 }
 
-async function publish(routingKey, payload, correlationId) {
-  const activeChannel = channel || await connectRabbit();
+async function publish(routingKey, payload, { correlationId, aggregateId } = {}) {
   const envelope = {
     eventId: crypto.randomUUID(),
     eventType: routingKey,
     occurredAt: new Date().toISOString(),
     correlationId,
-    data: payload
+    producer: 'trip-service',
+    aggregateId,
+    payload
   };
   try {
+    const activeChannel = channel || await connectRabbit();
     activeChannel.publish(config.rabbitmqExchange, routingKey, Buffer.from(JSON.stringify(envelope)), { persistent: true });
   } catch (error) {
     logger.error('RabbitMQ publish failed', correlationId);

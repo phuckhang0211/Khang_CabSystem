@@ -8,9 +8,9 @@
 ## 0. TRẠNG THÁI HIỆN TẠI (Codex cập nhật khối này sau MỖI task)
 
 ```
-Task đang làm   : T26
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25
-Task kế tiếp    : T26
+Task đang làm   : không
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26
+Task kế tiếp    : T27
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -92,7 +92,7 @@ Vòng lặp của mỗi phiên:
 
 **E. Trip, Review**
 - [x] T25 Trip: schema + consumer booking.assigned + Get/GetByBooking + route
-- [ ] T26 Trip: Arrive/Start/UpdateLocation/Complete + event (TC17)
+- [x] T26 Trip: Arrive/Start/UpdateLocation/Complete + event (TC17)
 - [ ] T27 Trip: Cancel + Booking consume trip.completed/canceled (TC18)
 - [ ] T28 Customer: Reviews + route (TC20)
 
@@ -395,11 +395,11 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §8.6 Arrive/Start/UpdateTripLocation/Complete (722-724), §6 dòng `trip.*` (385-388), §16 mục 3, 7 (1025, 1029), §9.4 hàng trips POST/PUT (789-792).
 - **Làm:** `Arrive` (`DRIVER_ARRIVING→DRIVER_ARRIVED`), `Start` (`→IN_PROGRESS`), `UpdateTripLocation` (chỉ `IN_PROGRESS`, ghi đè `last_lat/lng/location_updated_at`, 409 nếu sai trạng thái, validate tọa độ), `Complete` (chỉ `IN_PROGRESS`, copy `last→end`, **không tính lại cước**, sau commit `Driver.ReleaseDriver` rồi publish `trip.completed`). Chỉ driver được gán (403 nếu khác; sai trạng thái → `ABORTED` `STATE_CONFLICT`). Publish `trip.arrived/started/completed` kèm `driverUserId` (lấy bằng `Driver.GetDriver{driverId}`). Gateway routes.
 - **Nghiệm thu** (tiếp chuyến từ T24):
-  - [ ] Start trước arrive → 409; location khi chưa `IN_PROGRESS` → 409; driver khác arrive → 403.
-  - [ ] TC17: arrive → start → `PUT location` → complete đúng trình tự; `GET /trips/:id` `status=COMPLETED`, `endLat/endLng` = vị trí cuối, `paymentStatus=PAID`.
-  - [ ] `[redis]` driver trở lại `AVAILABLE`, `currentBookingId` bị xóa.
-  - [ ] `[rmq-tmp]` thấy `trip.arrived/started/completed` có `driverUserId`; customer có notification `TRIP_ARRIVED/STARTED/COMPLETED`.
-  - [ ] Complete khi chưa `IN_PROGRESS` → 409.
+  - [x] Start trước arrive → 409; location khi chưa `IN_PROGRESS` → 409; driver khác arrive → 403.
+  - [x] TC17: arrive → start → `PUT location` → complete đúng trình tự; `GET /trips/:id` `status=COMPLETED`, `endLat/endLng` = vị trí cuối, `paymentStatus=PAID`.
+  - [x] `[redis]` driver trở lại `AVAILABLE`, `currentBookingId` bị xóa.
+  - [x] `[rmq-tmp]` thấy `trip.arrived/started/completed` có `driverUserId`; customer có notification `TRIP_ARRIVED/STARTED/COMPLETED`.
+  - [x] Complete khi chưa `IN_PROGRESS` → 409.
 
 #### T27 - Trip: Cancel + Booking consume `trip.completed/canceled`
 - **Đọc:** §8.6 Cancel (725), §8.4 dòng consumer trip (692), §6 dòng trip.canceled (388), §9.4 hàng cancel (793), §11 BR17 (860).
@@ -732,3 +732,14 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: trước accept 404; sau accept tạo `DRIVER_ARRIVING`/`PAID` với fare number, paidAt/vehicleId/paymentId; publish lại event vẫn chỉ một trip; ownership/UUID/auth và gRPC thiếu service token đạt. Có đủ `booking.q`, `trip.q`, `notify.q`; dữ liệu test đã dọn và seed khôi phục.
 - Giả định: schema §7.5 không có cột pickup/destination; Trip proto giữ field sẵn có và trả Location mặc định cho đến task lifecycle kế tiếp.
 - Commit: `T25: Trip schema + booking.assigned consumer + get trip routes`.
+
+### [2026-10-08] T26 - Trip arrive/start/location/complete - DỞ DANG
+- Checkpoint: pre-check 17 container healthy; diff định dạng driver.js đã lưu tại %TEMP%\t26-precheck-driver.patch và hoàn tác. Đã đối chiếu SPEC §8.6, §6, §8.7, §9.4, §16; đang triển khai và nghiệm thu.
+- Checkpoint: Trip RPC/route/event và proto đã rebuild; TC17, RBAC, trạng thái lỗi, race, Notify, booking.q đều đạt theo `%TEMP%\t26-results.txt`.
+
+### [2026-10-08 19:12] T26 - Trip arrive/start/location/complete - HOÀN THÀNH
+- Commit: `T26: Trip arrive/start/location/complete + trip events`.
+- Đã làm: 4 RPC và route Trip, 3 event chuẩn, trả tọa độ và mốc thời gian Trip; Notify đã có binding/mapping nên không cần sửa.
+- Nghiệm thu: hai flow mới (một TC17, một race); một arrive 200 và một 409 khi gọi đồng thời; event/notification đúng; driver được giải phóng; gRPC thiếu service token bị từ chối. Các bảng test được dọn về 0 và seed khôi phục, Redis baseline đúng, 17 container healthy.
+- Lỗi đã sửa: script nghiệm thu ban đầu đọc sai `data.items` của API notifications; sửa script tạm và chạy tiếp từ chuyến đã tạo, không phải lỗi sản phẩm.
+- Giả định: proto Trip thiếu các field tọa độ/mốc thời gian được SPEC §8.6 yêu cầu trả ra, bổ sung field 16..23; `booking COMPLETED` sẽ đồng bộ ở T27, hiện vẫn `DRIVER_ASSIGNED`.
