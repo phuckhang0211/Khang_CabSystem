@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31
-Task kế tiếp    : T32
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32
+Task kế tiếp    : T33
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -102,7 +102,7 @@ Vòng lặp của mỗi phiên:
 - [x] T29 Seed phần B (booking, payment, trip, review) (TC14)
 - [x] T30 Postman phần 1 (Health → Booking+Payment)
 - [x] T31 Postman phần 2 (Offer → Security)
-- [ ] T32 `huong-dan-test/TC01..TC10.md`
+- [x] T32 `huong-dan-test/TC01..TC10.md`
 - [ ] T33 `huong-dan-test/TC11..TC20.md`
 - [ ] T34 `huong-dan-test/TC21..TC30.md`
 - [ ] T35 README
@@ -450,8 +450,8 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §14.2 (952-953), §14.3 hàng TC01-TC10 (958-967), §2, §4.1, §4.4, §4.5.
 - **Làm:** 10 file, mỗi file có 5 mục: **Mục tiêu, Điều kiện trước, Các bước** (request cụ thể hoặc lệnh `docker compose ...`/SQL), **Kết quả mong đợi, Cách chụp minh chứng**. Dùng dữ liệu seed §12. Mọi lệnh phải **chạy thử thật** trước khi ghi.
 - **Nghiệm thu:**
-  - [ ] Đủ 10 file `TC01.md ... TC10.md`, mỗi file đủ 5 mục (`grep -c '^## ' huong-dan-test/TC*.md`).
-  - [ ] Chạy thử các lệnh của TC05, TC06, TC08, TC09, TC10 đúng như file mô tả, kết quả khớp.
+  - [x] Đủ 10 file `TC01.md ... TC10.md`, mỗi file đủ 5 mục (`grep -c '^## ' huong-dan-test/TC*.md`).
+  - [x] Chạy thử các lệnh của TC05, TC06, TC08, TC09, TC10 đúng như file mô tả, kết quả khớp.
 
 #### T33 - `huong-dan-test/TC11..TC20.md`
 - **Đọc:** §14.2, §14.3 hàng TC11-TC20 (969-978), §12.3 (kỳ vọng TC14).
@@ -807,3 +807,15 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: Newman hai lượt từ baseline sạch, mỗi lượt 237 request/163 assertion/0 failure. TC29 trả 429 `RATE_LIMITED` có `Retry-After` rồi `/health` 200; giữa hai lượt chờ ≥65 giây. Sau mỗi lượt cleanup theo ID và chạy seed; lần cuối toàn bộ bảng/Redis khớp baseline T29, customer1 vẫn 6 booking. Compose thường có 17 container healthy, chỉ publish 3000/15672, `/ready` 200.
 - Lỗi harness đã sửa: Offer list lồng booking trong `offer.booking`; notifications giới hạn 50 và payload `TRIP_CANCELED` chứa `tripId`; TC14 so đuôi UUID seed; Postman sandbox không hỗ trợ `base64url`; callback replay cần tính lại chữ ký; cleanup nhận customer sau TC26 đổi displayName và notification driver seed không có bookingId. Các phép kiểm lại đều đạt, không sửa service/Gateway/seed.
 - Giả định: TC29 gửi thêm ba login sai mỗi lượt lặp để đạt ngưỡng 100/phút dưới delay Newman 800 ms. `RATE_LIMIT_LOGIN_PER_MIN=100` là cấu hình dev cục bộ, trả về 5 ở T36; bí mật/mật khẩu chỉ truyền qua `--env-var`.
+
+### [2026-10-09] T32 - huong-dan-test TC01..TC10 - DỞ DANG
+- Checkpoint: T31 commit `83af64f`, Git sạch, 17 container healthy; baseline T29 khớp 13 số đếm bảng/Redis. `.env` cục bộ có `RATE_LIMIT_LOGIN_PER_MIN=100` (trả về 5 ở T36). RabbitMQ có ba queue với mỗi queue một consumer và binding đúng §6.
+- Checkpoint: TC01–TC03 đã viết đủ 5 mục/file và chạy nguyên code PowerShell lấy từ file: cây thư mục 7 service/9 proto; `.env` bị ignore; thiếu JWT 401 `INVALID_TOKEN`, sai vai trò 403 `FORBIDDEN`, health 200 có correlation ID.
+- Checkpoint: TC04–TC07 đã viết và chạy nguyên code PowerShell lấy từ file: proto RPC/log hoạt động; `docker compose ps` 17/17 healthy; Health có 16 component, stop Notify làm ready 503 `NOT_READY`, start lại ready 200; RabbitMQ `ride.events` topic durable, ba queue messages=0/consumers=1 và binding khớp §6.
+- Checkpoint: TC08–TC10 đã viết và chạy nguyên code PowerShell lấy từ file: thường chỉ mở 3000/15672, debug thêm DB 5433–5439 và Redis 6379, gRPC luôn đóng, trả về thường ready/17; TC09 đăng ký 201 ACTIVE, login được và xóa đúng một profile/user theo `userId` trả từ API; TC10 login đúng có Bearer, sai mật khẩu 401 `INVALID_CREDENTIALS`.
+
+### [2026-10-09 16:20] T32 - huong-dan-test TC01..TC10 - HOÀN THÀNH
+- Commit: `T32: huong-dan-test TC01-TC10`.
+- Đã thêm `huong-dan-test/TC01.md` ... `TC10.md`, mỗi file có đúng 5 mục bắt buộc. Toàn bộ code PowerShell trong 10 file được chạy từ chính file; TC05, TC06, TC08, TC09, TC10 đạt như kết quả mong đợi. TC06 đã khởi động lại Notify; TC08 trả Compose từ debug về thường. TC09 xóa profile rồi user theo `userId` từ API, không xóa seed.
+- Nghiệm thu: 10/10 file đủ 5 heading đúng thứ tự; 17/17 container healthy, `/ready` 200; sau dọn và chạy lại seed, 12 bảng và Redis khớp baseline T29. TC07 có ba queue, mỗi queue một consumer. Không có giá trị bí mật dài từ `.env` trong tài liệu.
+- Lỗi đã sửa: không có lỗi nghiệm thu; mọi lệnh đã chạy đúng trên PowerShell. Giả định: không có quyết định nghiệp vụ mới. `.env` cục bộ giữ `RATE_LIMIT_LOGIN_PER_MIN=100` như T31 và vẫn cần trả về 5 ở T36.
