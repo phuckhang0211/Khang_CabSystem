@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29
-Task kế tiếp    : T30
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30
+Task kế tiếp    : T31
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -100,7 +100,7 @@ Vòng lặp của mỗi phiên:
 
 **F. Seed B, test, tài liệu, nghiệm thu cuối**
 - [x] T29 Seed phần B (booking, payment, trip, review) (TC14)
-- [ ] T30 Postman phần 1 (Health → Booking+Payment)
+- [x] T30 Postman phần 1 (Health → Booking+Payment)
 - [ ] T31 Postman phần 2 (Offer → Security)
 - [ ] T32 `huong-dan-test/TC01..TC10.md`
 - [ ] T33 `huong-dan-test/TC11..TC20.md`
@@ -435,8 +435,8 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §14.1 (938-950), §14.3 (955-987), §9.4 (761-802) chỉ để lấy URL/body.
 - **Làm:** `postman/CABSYSTEM_API.postman_environment.json` (biến §14.1) + khởi tạo `CABSYSTEM_API.postman_collection.json` với các folder: Health → Auth/Customer → Driver onboarding/Admin → Driver status/location/nearby → Booking+Payment. Mỗi request có `pm.test` kiểm status + field chính và lưu id vào biến (`bookingId, paymentId, fare, idemKey...`). Callback dùng Pre-request Script HMAC như §14.1.
 - **Nghiệm thu:**
-  - [ ] File JSON hợp lệ (`node -e "JSON.parse(require('fs').readFileSync('postman/CABSYSTEM_API.postman_collection.json'))"`).
-  - [ ] Chạy các folder bằng `newman` (`npx newman run ... -e ... --delay-request 800`): tất cả test pass (nếu không có newman, ghi log và kiểm bằng curl tương đương).
+  - [x] File JSON hợp lệ (`node -e "JSON.parse(require('fs').readFileSync('postman/CABSYSTEM_API.postman_collection.json'))"`).
+  - [x] Chạy các folder bằng `newman` (`npx newman run ... -e ... --delay-request 800`): tất cả test pass (nếu không có newman, ghi log và kiểm bằng curl tương đương).
 
 #### T31 - Postman phần 2 (Offer → Security)
 - **Đọc:** §14.1 thứ tự folder (941), §14.3 hàng TC15-TC30 (970-987).
@@ -780,3 +780,17 @@ Vòng lặp của mỗi phiên:
 - Nghiệm thu: seed hai lần, TC14 trước khi tạo Booking mới cho Customer1, API Booking/Trip/Payment/Review/Offer, Redis, flow hồi quy và dọn theo ID đều đạt. Dữ liệu cuối khớp baseline mới; 17 container healthy và `/ready` 200.
 - Xác nhận T28: dòng FAIL list reviews do helper tạm bỏ trường `pagination`; HTTP response đúng, đã sửa harness T28 và chạy lại PASS. Lượt FAIL TC14 của T29 cũng do harness đọc `data.items` thay vì mảng `data`; đã sửa và chạy lại PASS.
 - Giả định: địa chỉ lịch sử NULL, Payment 406 có failure_code SEED_PAYMENT_FAILED; mốc phụ tăng dần cùng ngày và được ghi ở README.
+
+### [2026-10-08] T30 - Postman phần 1 - DỞ DANG
+- Checkpoint: precheck Git sạch, T29 đã commit, Docker có 17 container healthy. Baseline T29 và Redis 211–215/ZCARD đều đúng; chưa có dữ liệu Postman phát sinh.
+- Checkpoint: collection có đúng 5 folder và environment không chứa secret/token. Newman đã chạy hai lượt liên tiếp, mỗi lượt 34 request/34 assertion/0 failure; dữ liệu `postman-*` đã dọn theo ID và seed đã chạy lại. Docker Desktop sau đó mất named pipe nên đang chờ kiểm lại baseline, 17 container và `/ready` trước khi tick/commit.
+
+### [2026-10-09] T30 - Postman phần 1 - BLOCKED
+- Checkpoint: `docker version` liên tiếp ba lần trả lỗi `npipe:////./pipe/dockerDesktopLinuxEngine` không tồn tại. Không thể kiểm baseline sau dọn hoặc compose health; collection, environment và journal vẫn chưa commit. Tiếp tục khi Docker Desktop hoạt động lại.
+
+### [2026-10-09] T30 - Postman phần 1 - HOÀN THÀNH
+- Commit: `T30: Postman part 1 health to booking+payment`.
+- Cấu trúc: Health → Auth/Customer → Driver onboarding/Admin → Driver status/location/nearby → Booking+Payment; Customer1 chỉ đọc, flow ghi dùng Customer `postman-*` mới.
+- List response: `/drivers/nearby` dùng `data` là mảng và `pagination` sibling; `/bookings` cũng dùng `data` là mảng; `/admin/driver-applications` dùng `data` là mảng. Reviews T28 dùng `data.items`, không thuộc collection T30.
+- Nghiệm thu: Newman hai lượt liên tiếp đều 34 request/34 assertion/0 failure. T30 không tạo booking mới cho Customer1; dọn theo ID/prefix `postman-*`, chạy lại seed và đạt baseline T29. Docker Desktop từng mất named pipe sau nghiệm thu, sau khi hoạt động lại đã kiểm 17 container healthy và `/ready=200`.
+- Lỗi đã sửa: chữ ký callback trong Newman bị resolve body trước pre-request script; chữ ký cho callback kế tiếp được chuẩn bị sau request trước, còn callback vẫn có pre-request HMAC dùng CryptoJS và `signature` runtime. Không có secret/token/password trong hai JSON commit.
