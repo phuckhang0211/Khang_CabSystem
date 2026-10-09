@@ -9,8 +9,8 @@
 
 ```
 Task đang làm   : không
-Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30
-Task kế tiếp    : T31
+Task đã xong    : T00, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31
+Task kế tiếp    : T32
 Dở dang / BLOCKED: không.
 Lệnh dev đã đổi tạm (phải trả lại ở T36): khuyến nghị cục bộ `RATE_LIMIT_LOGIN_PER_MIN=100` khi phát triển; giữ mặc định 5 trong `.env.example`.
 Giả định đã ghi README: thêm `id` vào CustomerProfile (proto) theo yêu cầu checklist T10; Auth T11 kiểm độ dài displayName sau escape nhưng gửi giá trị gốc để Customer escape đúng một lần trước khi lưu; Gateway đặt `trust proxy=false` nên `req.ip` là địa chỉ socket Docker, login chỉ qua `loginLimiter` và default limiter bỏ qua health bằng so khớp path chính xác; `.env` từng có giá trị bí mật không đủ mạnh, đã sinh lại không in giá trị và reset Docker volume dev; T18: proto3 không phân biệt `radiusKm` không gửi với `0`, nên theo checklist T18 chọn `0` (và giá trị mặc định proto khi không gửi) là `INVALID_ARGUMENT`, còn radius hợp lệ là `(0,50]`; T23: SPEC cũ ghi `notify.q` bind `booking.*`, nhưng topic `*` chỉ khớp một từ và không nhận `booking.offer.created`; dùng `booking.#` (tương tự driver/payment/trip) để khớp 0..n từ.
@@ -101,7 +101,7 @@ Vòng lặp của mỗi phiên:
 **F. Seed B, test, tài liệu, nghiệm thu cuối**
 - [x] T29 Seed phần B (booking, payment, trip, review) (TC14)
 - [x] T30 Postman phần 1 (Health → Booking+Payment)
-- [ ] T31 Postman phần 2 (Offer → Security)
+- [x] T31 Postman phần 2 (Offer → Security)
 - [ ] T32 `huong-dan-test/TC01..TC10.md`
 - [ ] T33 `huong-dan-test/TC11..TC20.md`
 - [ ] T34 `huong-dan-test/TC21..TC30.md`
@@ -442,9 +442,9 @@ Vòng lặp của mỗi phiên:
 - **Đọc:** §14.1 thứ tự folder (941), §14.3 hàng TC15-TC30 (970-987).
 - **Làm:** bổ sung folder: Offer/Accept → Trip → Review → Cancel → Payment FAIL → Seed paging (TC14) → Security (TC24-30: SQLi, XSS, JWT tamper, unauthorized, rate limit, replay). Thêm delay giữa request theo §14.1 (≥700 ms; login cách ≥12 s) hoặc ghi chú tăng limit.
 - **Nghiệm thu:**
-  - [ ] JSON hợp lệ; thứ tự folder đúng §14.1.
-  - [ ] `newman` chạy toàn collection trên DB sạch + seed: không test nào fail (TC14 chạy trước khi tạo booking mới cho customer1 — kiểm tra thứ tự trong collection).
-  - [ ] Folder Security thể hiện đủ 7 tiêu chí TC24-TC30.
+  - [x] JSON hợp lệ; thứ tự folder đúng §14.1.
+  - [x] `newman` chạy toàn collection trên DB sạch + seed: không test nào fail (TC14 chạy trước khi tạo booking mới cho customer1 — kiểm tra thứ tự trong collection).
+  - [x] Folder Security thể hiện đủ 7 tiêu chí TC24-TC30.
 
 #### T32 - `huong-dan-test/TC01..TC10.md`
 - **Đọc:** §14.2 (952-953), §14.3 hàng TC01-TC10 (958-967), §2, §4.1, §4.4, §4.5.
@@ -794,3 +794,16 @@ Vòng lặp của mỗi phiên:
 - List response: `/drivers/nearby` dùng `data` là mảng và `pagination` sibling; `/bookings` cũng dùng `data` là mảng; `/admin/driver-applications` dùng `data` là mảng. Reviews T28 dùng `data.items`, không thuộc collection T30.
 - Nghiệm thu: Newman hai lượt liên tiếp đều 34 request/34 assertion/0 failure. T30 không tạo booking mới cho Customer1; dọn theo ID/prefix `postman-*`, chạy lại seed và đạt baseline T29. Docker Desktop từng mất named pipe sau nghiệm thu, sau khi hoạt động lại đã kiểm 17 container healthy và `/ready=200`.
 - Lỗi đã sửa: chữ ký callback trong Newman bị resolve body trước pre-request script; chữ ký cho callback kế tiếp được chuẩn bị sau request trước, còn callback vẫn có pre-request HMAC dùng CryptoJS và `signature` runtime. Không có secret/token/password trong hai JSON commit.
+
+### [2026-10-09] T31 - Postman phần 2 - DỞ DANG
+- Checkpoint: T30 ở commit `2e6d2b2`, Git sạch trước khi làm. Docker ban đầu dừng; đã `docker compose up -d --build`, 17 container healthy. Baseline: bookings/payments=7, trips/offers=4, reviews=1, customer_profiles=2, notifications/idempotency=0, users=9, drivers/applications/vehicles=6, Redis GEO=5. `.env` cục bộ đã là `RATE_LIMIT_LOGIN_PER_MIN=100`.
+- Checkpoint: Đã bổ sung 7 folder Offer/Accept → Security sau 5 folder T30; lần thử thứ hai đi hết 12 folder (215 request, TC29 đạt 429/health 200). Offer/Accept, Trip lifecycle, Review, Cancel, Payment FAIL đã chạy được. Chưa tick vì còn lỗi assertion ở notification `limit=100` (API tối đa 50), TC14 ép UUID thành Number, TC27 sandbox không nhận `base64url`, TC30 callback replay dùng chữ ký flow D. Đã sửa 4 điểm và chuẩn bị chạy lại.
+- Checkpoint: cleanup lần đầu đọc profile theo `display_name LIKE 'postman-%'` nhưng TC26 đã đổi displayName thành XSS escaped, nên bỏ sót một customer; đã đổi cleanup tạm sang nhận diện user không thuộc hai UUID seed. Notification `TRIP_CANCELED` gửi cho driver seed không mang bookingId, đã thêm điều kiện tripId/reason; dọn về baseline, không xóa ID seed.
+- Checkpoint: Collection cuối có 12 folder/136 request; Review dùng customer B riêng cho trip/review XSS, customer mới T30 dùng booking A/B/C/D/E (driver cancel ở E). Newman lượt 1 đạt 237 request/163 assertion/0 failure; sau cleanup theo ID và seed, các bảng cùng Redis khớp baseline, customer1 vẫn 6 booking. Đã chờ ≥65 giây sau TC29 và đang chạy lượt 2.
+
+### [2026-10-09] T31 - Postman phần 2 - HOÀN THÀNH
+- Commit: `T31: Postman part 2 offer to security`.
+- Cấu trúc: 12 folder theo §14.1, 136 request; thêm Offer/Accept, Trip, Review, Cancel, Payment FAIL, Seed paging (TC14), Security (TC24–TC30). TC29 là request cuối. Customer seed 101/102 chỉ đọc hoặc kiểm 403; customer mới T30 tạo booking A/B/C/D/E, customer B dùng booking F và review XSS riêng. Các flow complete/cancel trả tài xế về AVAILABLE trước flow sau.
+- Nghiệm thu: Newman hai lượt từ baseline sạch, mỗi lượt 237 request/163 assertion/0 failure. TC29 trả 429 `RATE_LIMITED` có `Retry-After` rồi `/health` 200; giữa hai lượt chờ ≥65 giây. Sau mỗi lượt cleanup theo ID và chạy seed; lần cuối toàn bộ bảng/Redis khớp baseline T29, customer1 vẫn 6 booking. Compose thường có 17 container healthy, chỉ publish 3000/15672, `/ready` 200.
+- Lỗi harness đã sửa: Offer list lồng booking trong `offer.booking`; notifications giới hạn 50 và payload `TRIP_CANCELED` chứa `tripId`; TC14 so đuôi UUID seed; Postman sandbox không hỗ trợ `base64url`; callback replay cần tính lại chữ ký; cleanup nhận customer sau TC26 đổi displayName và notification driver seed không có bookingId. Các phép kiểm lại đều đạt, không sửa service/Gateway/seed.
+- Giả định: TC29 gửi thêm ba login sai mỗi lượt lặp để đạt ngưỡng 100/phút dưới delay Newman 800 ms. `RATE_LIMIT_LOGIN_PER_MIN=100` là cấu hình dev cục bộ, trả về 5 ở T36; bí mật/mật khẩu chỉ truyền qua `--env-var`.

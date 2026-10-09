@@ -12,7 +12,10 @@
       "item": [
         {
           "name": "GET health",
-          "request": { "method": "GET", "url": "{{baseUrl}}/health" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
           "event": [
             {
               "listen": "test",
@@ -26,7 +29,10 @@
         },
         {
           "name": "GET ready",
-          "request": { "method": "GET", "url": "{{baseUrl}}/ready" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/ready"
+          },
           "event": [
             {
               "listen": "test",
@@ -40,7 +46,10 @@
         },
         {
           "name": "GET health services",
-          "request": { "method": "GET", "url": "{{baseUrl}}/health/services" },
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health/services"
+          },
           "event": [
             {
               "listen": "test",
@@ -66,8 +75,7 @@
                 "exec": [
                   "const stamp = Date.now();",
                   "pm.environment.set('newCustomerEmail', `postman-customer-${stamp}@example.test`);",
-                  "pm.environment.set('newCustomerPhone', `+8498${String(stamp).slice(-8)}`);",
-                  "pm.environment.set('newCustomerPassword', 'Postman@123');"
+                  "pm.environment.set('newCustomerPhone', `+8498${String(stamp).slice(-8)}`);"
                 ]
               }
             },
@@ -82,7 +90,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{newCustomerEmail}}\",\n  \"password\": \"{{newCustomerPassword}}\",\n  \"displayName\": \"postman-customer\",\n  \"phone\": \"{{newCustomerPhone}}\"\n}"
@@ -94,7 +107,12 @@
           "name": "Login admin",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{adminEmail}}\",\"password\":\"{{adminPassword}}\"}"
@@ -116,7 +134,12 @@
           "name": "Login customer1 read-only",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{customerEmail}}\",\"password\":\"{{customerPassword}}\"}"
@@ -138,7 +161,12 @@
           "name": "Login customer2",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{customer2Email}}\",\"password\":\"{{customer2Password}}\"}"
@@ -160,7 +188,12 @@
           "name": "Login driver1",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{driver1Email}}\",\"password\":\"{{driver1Password}}\"}"
@@ -182,7 +215,12 @@
           "name": "Login driver2",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{driver2Email}}\",\"password\":\"{{driver2Password}}\"}"
@@ -204,7 +242,12 @@
           "name": "Login newly registered customer",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"identifier\":\"{{newCustomerEmail}}\",\"password\":\"{{newCustomerPassword}}\"}"
@@ -227,7 +270,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/customers/me"
           },
@@ -247,7 +293,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/customers/00000000-0000-0000-0000-000000000101"
           },
@@ -289,7 +338,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"phone\":\"{{postmanDriverPhone}}\"}"
@@ -301,7 +355,12 @@
           "name": "Verify OTP for postman driver",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"phone\":\"{{postmanDriverPhone}}\",\"otp\":\"{{postmanOtp}}\"}"
@@ -342,12 +401,18 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{onboardingToken}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{onboardingToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"{{postmanDriverEmail}}\",\"password\":\"Postman@123\",\"phone\":\"{{postmanDriverPhone}}\",\"fullName\":\"postman-driver\",\"licenseNumber\":\"POSTMAN-{{$timestamp}}\",\"vehicle\":{\"plateNumber\":\"{{postmanDriverPlate}}\",\"vehicleType\":\"CAR\",\"brand\":\"Postman\",\"model\":\"Test\",\"color\":\"Blue\"}}"
+              "raw": "{\"email\":\"{{postmanDriverEmail}}\",\"password\":\"{{postmanDriverPassword}}\",\"phone\":\"{{postmanDriverPhone}}\",\"fullName\":\"postman-driver\",\"licenseNumber\":\"POSTMAN-{{$timestamp}}\",\"vehicle\":{\"plateNumber\":\"{{postmanDriverPlate}}\",\"vehicleType\":\"CAR\",\"brand\":\"Postman\",\"model\":\"Test\",\"color\":\"Blue\"}}"
             },
             "url": "{{baseUrl}}/drivers/applications"
           }
@@ -357,7 +422,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
             ],
             "url": "{{baseUrl}}/admin/driver-applications?status=PENDING_REVIEW&page=1&limit=20"
           },
@@ -377,7 +445,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
             ],
             "url": "{{baseUrl}}/admin/driver-applications/{{applicationId}}"
           },
@@ -397,7 +468,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
             ],
             "url": "{{baseUrl}}/admin/driver-applications/{{applicationId}}/approve"
           },
@@ -422,10 +496,19 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{driver1Token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{\"status\":\"ONLINE\"}" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"ONLINE\"}"
+            },
             "url": "{{baseUrl}}/drivers/me/status"
           },
           "event": [
@@ -444,8 +527,14 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{driver1Token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -469,7 +558,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{customerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/drivers/nearby?lat=10.762622&lng=106.660172&radiusKm=1&page=1&limit=10"
           },
@@ -489,8 +581,14 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{driver1Token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -541,8 +639,14 @@
                 "key": "Authorization",
                 "value": "Bearer {{newCustomerToken}}"
               },
-              { "key": "Idempotency-Key", "value": "{{idemKey}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -560,8 +664,14 @@
                 "key": "Authorization",
                 "value": "Bearer {{newCustomerToken}}"
               },
-              { "key": "Idempotency-Key", "value": "{{idemKey}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -589,8 +699,14 @@
                 "key": "Authorization",
                 "value": "Bearer {{newCustomerToken}}"
               },
-              { "key": "Idempotency-Key", "value": "{{idemKey}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -618,7 +734,10 @@
                 "key": "Authorization",
                 "value": "Bearer {{newCustomerToken}}"
               },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -642,7 +761,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{newCustomerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/bookings/{{bookingId}}"
           },
@@ -662,7 +784,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{newCustomerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/payments/{{paymentId}}"
           },
@@ -682,7 +807,12 @@
           "name": "Callback invalid signature",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}-bad\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"invalid\"}"
@@ -704,25 +834,6 @@
           "name": "Callback invalid amount",
           "event": [
             {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const paymentId=pm.environment.get('paymentId'),providerTxnId=`${pm.environment.get('providerTxnId')}-amount`,amount=1,result='SUCCESS';const s=`${paymentId}|${providerTxnId}|${amount}|${result}`;const signature=CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex);pm.variables.set('signature',signature);pm.environment.set('signature',signature);pm.request.body.update(JSON.stringify({paymentId,providerTxnId,amount,result,signature}));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-            "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}-amount\",\"amount\":1,\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
-            },
-            "url": "{{baseUrl}}/payments/mock/callback"
-          },
-          "event": [
-            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -731,29 +842,24 @@
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Callback success",
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "const paymentId=pm.environment.get('paymentId'),providerTxnId=pm.environment.get('providerTxnId'),amount=Number(pm.environment.get('fare')),result='SUCCESS';const s=`${paymentId}|${providerTxnId}|${amount}|${result}`;const signature=CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex);pm.variables.set('signature',signature);pm.environment.set('signature',signature);pm.request.body.update(JSON.stringify({paymentId,providerTxnId,amount,result,signature}));"
-                ]
-              }
-            }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-            "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+              "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}-amount\",\"amount\":1,\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
             },
             "url": "{{baseUrl}}/payments/mock/callback"
-          },
+          }
+        },
+        {
+          "name": "Callback success",
           "event": [
             {
               "listen": "test",
@@ -763,14 +869,31 @@
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            },
+            "url": "{{baseUrl}}/payments/mock/callback"
+          }
         },
         {
           "name": "GET completed payment",
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{newCustomerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/payments/{{paymentId}}"
           },
@@ -790,7 +913,10 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{newCustomerToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
             ],
             "url": "{{baseUrl}}/bookings/{{bookingId}}"
           },
@@ -809,29 +935,2912 @@
           "name": "Replay callback",
           "event": [
             {
-              "listen": "prerequest",
+              "listen": "test",
               "script": {
                 "exec": [
-                  "const paymentId=pm.environment.get('paymentId'),providerTxnId=pm.environment.get('providerTxnId'),amount=Number(pm.environment.get('fare')),result='SUCCESS';const s=`${paymentId}|${providerTxnId}|${amount}|${result}`;const signature=CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex);pm.variables.set('signature',signature);pm.environment.set('signature',signature);pm.request.body.update(JSON.stringify({paymentId,providerTxnId,amount,result,signature}));"
+                  "pm.test('200 callback replay',()=>pm.response.to.have.status(200));"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-            "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+              "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
             },
             "url": "{{baseUrl}}/payments/mock/callback"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offer/Accept",
+      "item": [
+        {
+          "name": "Driver1 unread BOOKING_OFFER",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications?unread=true"
           },
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('200 callback replay',()=>pm.response.to.have.status(200));"
+                  "pm.test('200 const x=pm.response.json();const items=x.data.items||x.data;pm.expect(items.some(n=>n.type===BOOKING_OFFER&&JSON.stringify(n.data).includes(pm.environment.get(bookingId)))).to.eql(true);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const items=x.data.items||x.data;pm.expect(items.some(n=>n.type==='BOOKING_OFFER'&&JSON.stringify(n.data).includes(pm.environment.get('bookingId')))).to.eql(true);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 offers for booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();const items=x.data.items||x.data;const o=items.find(v=>v.booking.bookingId===pm.environment.get(bookingId));pm.expect(o).to.exist;pm.environment.set(offerId,o.offerId);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const items=x.data.items||x.data;const o=items.find(v=>v.booking.bookingId===pm.environment.get('bookingId'));pm.expect(o).to.exist;pm.environment.set('offerId',o.offerId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 offers for booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get(bookingId));pm.expect(o).to.exist;pm.environment.set(driver2OfferId,o.offerId);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get('bookingId'));pm.expect(o).to.exist;pm.environment.set('driver2OfferId',o.offerId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 reject own offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{driver2OfferId}}/reject",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-reject\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(REJECTED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('REJECTED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 reject again",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{driver2OfferId}}/reject",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-reject\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(STATE_CONFLICT);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('STATE_CONFLICT');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 accept driver1 offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{offerId}}/accept",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 accept offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{offerId}}/accept",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "description": "Offer expiry 410 OFFER_EXPIRED needs a timed manual test."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ASSIGNED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ASSIGNED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll assigned booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll DRIVER_ASSIGNED',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollAssigned')||0);if(d.status!=='DRIVER_ASSIGNED'){pm.expect(n).to.be.below(20);pm.environment.set('pollAssigned',String(n+1));postman.setNextRequest('Poll assigned booking')}else pm.environment.unset('pollAssigned');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer sees safe assigned driver",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(DRIVER_ASSIGNED);pm.expect(d.driver).to.exist;pm.expect(d.driver).to.not.have.property(userId);pm.expect(d.driver).to.not.have.property(licenseNumber);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('DRIVER_ASSIGNED');pm.expect(d.driver).to.exist;pm.expect(d.driver).to.not.have.property('userId');pm.expect(d.driver).to.not.have.property('licenseNumber');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver cannot list bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trip",
+      "item": [
+        {
+          "name": "Get trip by booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/by-booking/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(DRIVER_ARRIVING);pm.expect(d.paymentStatus).to.eql(PAID);pm.expect(d.fare).to.be.a(number);pm.environment.set(tripId,d.tripId||d.id);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('DRIVER_ARRIVING');pm.expect(d.paymentStatus).to.eql('PAID');pm.expect(d.fare).to.be.a('number');pm.environment.set('tripId',d.tripId||d.id);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start before arrive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(STATE_CONFLICT);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('STATE_CONFLICT');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Location before start",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"lat\":10.78,\"lng\":106.71}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(STATE_CONFLICT);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('STATE_CONFLICT');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 cannot arrive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/arrive",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 arrive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/arrive",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ARRIVED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ARRIVED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(IN_PROGRESS);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('IN_PROGRESS');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 update trip location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"lat\":10.78,\"lng\":106.71}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 ',()=>{pm.response.to.have.status(200);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get completed trip",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(COMPLETED);pm.expect(Number(d.endLat)).to.eql(10.78);pm.expect(Number(d.endLng)).to.eql(106.71);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('COMPLETED');pm.expect(Number(d.endLat)).to.eql(10.78);pm.expect(Number(d.endLng)).to.eql(106.71);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete twice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(STATE_CONFLICT);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('STATE_CONFLICT');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll completed booking",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll COMPLETED',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollCompleted')||0);if(d.status!=='COMPLETED'){pm.expect(n).to.be.below(20);pm.environment.set('pollCompleted',String(n+1));postman.setNextRequest('Poll completed booking')}else pm.environment.unset('pollCompleted');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other customer cannot see trip",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin can see trip",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{tripId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer receives trip events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications?page=1&limit=50"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('trip notifications',()=>{pm.response.to.have.status(200);const x=pm.response.json();const types=(x.data.items||x.data).map(n=>n.type);const wanted=['TRIP_ARRIVED','TRIP_STARTED','TRIP_COMPLETED'];const n=Number(pm.environment.get('tripNotifyPoll')||0);if(!wanted.every(t=>types.includes(t))){pm.expect(n).to.be.below(20);pm.environment.set('tripNotifyPoll',String(n+1));postman.setNextRequest('Customer receives trip events')}else pm.environment.unset('tripNotifyPoll');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "item": [
+        {
+          "name": "Create five-star review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{tripId}}\",\"rating\":5,\"comment\":\"postman-great-trip\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.rating).to.eql(5);pm.environment.set(reviewId,d.reviewId||d.id);',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.rating).to.eql(5);pm.environment.set('reviewId',d.reviewId||d.id);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{tripId}}\",\"rating\":5,\"comment\":\"postman-repeat\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(ALREADY_EXISTS);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('ALREADY_EXISTS');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rating six rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{tripId}}\",\"rating\":6,\"comment\":\"postman-invalid\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 ',()=>{pm.response.to.have.status(400);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Other customer cannot review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{tripId}}\",\"rating\":4,\"comment\":\"postman-other\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver cannot review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{tripId}}\",\"rating\":4}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List trip reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews?tripId={{tripId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect(x.data.items).to.be.an(array);pm.expect(x.data.items.some(v=>v.rating===5)).to.eql(true);pm.expect(x.pagination).to.exist;',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect(x.data.items).to.be.an('array');pm.expect(x.data.items.some(v=>v.rating===5)).to.eql(true);pm.expect(x.pagination).to.exist;});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing tripId review list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 ',()=>{pm.response.to.have.status(400);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register customer B for separate XSS review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{customerBEmail}}\",\"password\":\"{{newCustomerPassword}}\",\"displayName\":\"postman-customer-b\",\"phone\":\"{{customerBPhone}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const stamp=Date.now();pm.environment.set('customerBEmail','postman-customer-b-'+stamp+'@example.test');pm.environment.set('customerBPhone','+8497'+String(stamp).slice(-8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 pm.environment.set(customerBId,pm.response.json().data.userId);',()=>{pm.response.to.have.status(201);pm.environment.set('customerBId',pm.response.json().data.userId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login customer B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"{{customerBEmail}}\",\"password\":\"{{newCustomerPassword}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.environment.set(customerBToken,pm.response.json().data.accessToken);',()=>{pm.response.to.have.status(200);pm.environment.set('customerBToken',pm.response.json().data.accessToken);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking F",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerBToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{FKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('FKey','postman-F-'+Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_PENDING);pm.environment.set(FBookingId,d.bookingId);pm.environment.set(FPaymentId,d.paymentId);pm.environment.set(FFare,String(d.fare));pm.environment.set(FTxn,POSTMAN-F-+Date.now());const s=[pm.environment.get(FPaymentId),pm.environment.get(FTxn),pm.environment.get(FFare),SUCCESS].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_PENDING');pm.environment.set('FBookingId',d.bookingId);pm.environment.set('FPaymentId',d.paymentId);pm.environment.set('FFare',String(d.fare));pm.environment.set('FTxn','POSTMAN-F-'+Date.now());const s=[pm.environment.get('FPaymentId'),pm.environment.get('FTxn'),pm.environment.get('FFare'),'SUCCESS'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Callback F SUCCESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{FPaymentId}}\",\"providerTxnId\":\"{{FTxn}}\",\"amount\":{{FFare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking F searching",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerBToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{FBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll SEARCHING_DRIVER',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollF')||0);if(d.status!=='SEARCHING_DRIVER'){pm.expect(n).to.be.below(20);pm.environment.set('pollF',String(n+1));postman.setNextRequest('Poll booking F searching')}else pm.environment.unset('pollF');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 offers for F",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get(FBookingId));pm.expect(o).to.exist;pm.environment.set(FOfferId,o.offerId);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get('FBookingId'));pm.expect(o).to.exist;pm.environment.set('FOfferId',o.offerId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 accepts F",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{FOfferId}}/accept",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ASSIGNED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ASSIGNED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get trip F",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerBToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/by-booking/{{FBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.environment.set(FTripId,d.tripId);pm.expect(d.status).to.eql(DRIVER_ARRIVING);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.environment.set('FTripId',d.tripId);pm.expect(d.status).to.eql('DRIVER_ARRIVING');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 arrives F",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{FTripId}}/arrive",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ARRIVED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ARRIVED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 starts F",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{FTripId}}/start",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(IN_PROGRESS);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('IN_PROGRESS');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 locates F",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{FTripId}}/location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"lat\":10.78,\"lng\":106.71}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 ',()=>{pm.response.to.have.status(200);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver1 completes F",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{FTripId}}/complete",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create separate escaped XSS review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerBToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{FTripId}}\",\"rating\":4,\"comment\":\"<script>alert('hack')</script>\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.comment).to.include(&lt;script&gt;);',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.comment).to.include('&lt;script&gt;');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List escaped XSS review",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerBToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews?tripId={{FTripId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect(x.data.items.some(v=>v.comment.includes(&lt;script&gt;))).to.eql(true);',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect(x.data.items.some(v=>v.comment.includes('&lt;script&gt;'))).to.eql(true);});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cancel",
+      "item": [
+        {
+          "name": "Create booking B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{BKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('BKey','postman-B-'+Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_PENDING);pm.environment.set(BBookingId,d.bookingId);pm.environment.set(BPaymentId,d.paymentId);pm.environment.set(BFare,String(d.fare));pm.environment.set(BTxn,POSTMAN-B-+Date.now());const s=[pm.environment.get(BPaymentId),pm.environment.get(BTxn),pm.environment.get(BFare),SUCCESS].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_PENDING');pm.environment.set('BBookingId',d.bookingId);pm.environment.set('BPaymentId',d.paymentId);pm.environment.set('BFare',String(d.fare));pm.environment.set('BTxn','POSTMAN-B-'+Date.now());const s=[pm.environment.get('BPaymentId'),pm.environment.get('BTxn'),pm.environment.get('BFare'),'SUCCESS'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Callback B SUCCESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{BPaymentId}}\",\"providerTxnId\":\"{{BTxn}}\",\"amount\":{{BFare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking B searching",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{BBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll SEARCHING_DRIVER',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollB')||0);if(d.status!=='SEARCHING_DRIVER'){pm.expect(n).to.be.below(20);pm.environment.set('pollB',String(n+1));postman.setNextRequest('Poll booking B searching')}else pm.environment.unset('pollB');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel B without confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{BBookingId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 pm.expect(pm.response.json().error.code).to.eql(CONFIRM_REQUIRED);',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('CONFIRM_REQUIRED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin cannot cancel B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{BBookingId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer cancels B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{BBookingId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(CANCELED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('CANCELED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment B remains completed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/{{BPaymentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel B twice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{BBookingId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 ',()=>{pm.response.to.have.status(409);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking C",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{CKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('CKey','postman-C-'+Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_PENDING);pm.environment.set(CBookingId,d.bookingId);pm.environment.set(CPaymentId,d.paymentId);pm.environment.set(CFare,String(d.fare));pm.environment.set(CTxn,POSTMAN-C-+Date.now());const s=[pm.environment.get(CPaymentId),pm.environment.get(CTxn),pm.environment.get(CFare),SUCCESS].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_PENDING');pm.environment.set('CBookingId',d.bookingId);pm.environment.set('CPaymentId',d.paymentId);pm.environment.set('CFare',String(d.fare));pm.environment.set('CTxn','POSTMAN-C-'+Date.now());const s=[pm.environment.get('CPaymentId'),pm.environment.get('CTxn'),pm.environment.get('CFare'),'SUCCESS'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Callback C SUCCESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{CPaymentId}}\",\"providerTxnId\":\"{{CTxn}}\",\"amount\":{{CFare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking C searching",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{CBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll SEARCHING_DRIVER',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollC')||0);if(d.status!=='SEARCHING_DRIVER'){pm.expect(n).to.be.below(20);pm.environment.set('pollC',String(n+1));postman.setNextRequest('Poll booking C searching')}else pm.environment.unset('pollC');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 offers for C",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get(CBookingId));pm.expect(o).to.exist;pm.environment.set(COfferId,o.offerId);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get('CBookingId'));pm.expect(o).to.exist;pm.environment.set('COfferId',o.offerId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 accepts C",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{COfferId}}/accept",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ASSIGNED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ASSIGNED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get trip C",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/by-booking/{{CBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(DRIVER_ARRIVING);pm.environment.set(CTripId,d.tripId||d.id);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('DRIVER_ARRIVING');pm.environment.set('CTripId',d.tripId||d.id);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Review incomplete trip C",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tripId\":\"{{CTripId}}\",\"rating\":5,\"comment\":\"postman-incomplete\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 pm.expect(pm.response.json().error.code).to.eql(STATE_CONFLICT);',()=>{pm.response.to.have.status(409);pm.expect(pm.response.json().error.code).to.eql('STATE_CONFLICT');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel C without confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{CTripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 pm.expect(pm.response.json().error.code).to.eql(CONFIRM_REQUIRED);',()=>{pm.response.to.have.status(400);pm.expect(pm.response.json().error.code).to.eql('CONFIRM_REQUIRED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin cannot cancel C",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{CTripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel C short reason",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{CTripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"abc\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('400 ',()=>{pm.response.to.have.status(400);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer cancels trip C",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{CTripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel-trip\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(CANCELED);pm.expect(d.canceledBy).to.eql(CUSTOMER);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('CANCELED');pm.expect(d.canceledBy).to.eql('CUSTOMER');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking C canceled",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{CBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll CANCELED',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollCCancel')||0);if(d.status!=='CANCELED'){pm.expect(n).to.be.below(20);pm.environment.set('pollCCancel',String(n+1));postman.setNextRequest('Poll booking C canceled')}else pm.environment.unset('pollCCancel');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel C twice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{CTripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-cancel-trip\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('409 ',()=>{pm.response.to.have.status(409);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer trip canceled notification",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications?page=1&limit=50"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect((x.data.items||x.data).some(n=>n.type===TRIP_CANCELED&&JSON.stringify(n.data).includes(pm.environment.get(CTripId)))).to.eql(true);',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect((x.data.items||x.data).some(n=>n.type==='TRIP_CANCELED'&&JSON.stringify(n.data).includes(pm.environment.get('CTripId')))).to.eql(true);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 trip canceled notification",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications?page=1&limit=50"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect((x.data.items||x.data).some(n=>n.type===TRIP_CANCELED&&JSON.stringify(n.data).includes(pm.environment.get(CTripId)))).to.eql(true);',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect((x.data.items||x.data).some(n=>n.type==='TRIP_CANCELED'&&JSON.stringify(n.data).includes(pm.environment.get('CTripId')))).to.eql(true);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking E",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{EKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('EKey','postman-E-'+Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_PENDING);pm.environment.set(EBookingId,d.bookingId);pm.environment.set(EPaymentId,d.paymentId);pm.environment.set(EFare,String(d.fare));pm.environment.set(ETxn,POSTMAN-E-+Date.now());const s=[pm.environment.get(EPaymentId),pm.environment.get(ETxn),pm.environment.get(EFare),SUCCESS].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_PENDING');pm.environment.set('EBookingId',d.bookingId);pm.environment.set('EPaymentId',d.paymentId);pm.environment.set('EFare',String(d.fare));pm.environment.set('ETxn','POSTMAN-E-'+Date.now());const s=[pm.environment.get('EPaymentId'),pm.environment.get('ETxn'),pm.environment.get('EFare'),'SUCCESS'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Callback E SUCCESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{EPaymentId}}\",\"providerTxnId\":\"{{ETxn}}\",\"amount\":{{EFare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking E searching",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{EBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll SEARCHING_DRIVER',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollE')||0);if(d.status!=='SEARCHING_DRIVER'){pm.expect(n).to.be.below(20);pm.environment.set('pollE',String(n+1));postman.setNextRequest('Poll booking E searching')}else pm.environment.unset('pollE');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 offers for E",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get(EBookingId));pm.expect(o).to.exist;pm.environment.set(EOfferId,o.offerId);',()=>{pm.response.to.have.status(200);const x=pm.response.json();const o=(x.data.items||x.data).find(v=>v.booking.bookingId===pm.environment.get('EBookingId'));pm.expect(o).to.exist;pm.environment.set('EOfferId',o.offerId);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 accepts E",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/{{EOfferId}}/accept",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(DRIVER_ASSIGNED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('DRIVER_ASSIGNED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get trip E",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/by-booking/{{EBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.environment.set(ETripId,d.tripId);pm.expect(d.status).to.eql(DRIVER_ARRIVING);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.environment.set('ETripId',d.tripId);pm.expect(d.status).to.eql('DRIVER_ARRIVING');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver2 cancels trip E",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver2Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/trips/{{ETripId}}/cancel",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"reason\":\"postman-driver-cancel\",\"confirm\":true}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(CANCELED);pm.expect(d.canceledBy).to.eql(DRIVER);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('CANCELED');pm.expect(d.canceledBy).to.eql('DRIVER');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking E canceled",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{EBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll CANCELED',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollECancel')||0);if(d.status!=='CANCELED'){pm.expect(n).to.be.below(20);pm.environment.set('pollECancel',String(n+1));postman.setNextRequest('Poll booking E canceled')}else pm.environment.unset('pollECancel');});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Payment FAIL",
+      "item": [
+        {
+          "name": "Create booking D",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{DKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('DKey','postman-D-'+Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_PENDING);pm.environment.set(DBookingId,d.bookingId);pm.environment.set(DPaymentId,d.paymentId);pm.environment.set(DFare,String(d.fare));pm.environment.set(DTxn,POSTMAN-D-+Date.now());const s=[pm.environment.get(DPaymentId),pm.environment.get(DTxn),pm.environment.get(DFare),FAIL].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_PENDING');pm.environment.set('DBookingId',d.bookingId);pm.environment.set('DPaymentId',d.paymentId);pm.environment.set('DFare',String(d.fare));pm.environment.set('DTxn','POSTMAN-D-'+Date.now());const s=[pm.environment.get('DPaymentId'),pm.environment.get('DTxn'),pm.environment.get('DFare'),'FAIL'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Callback D FAIL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{DPaymentId}}\",\"providerTxnId\":\"{{DTxn}}\",\"amount\":{{DFare}},\"result\":\"FAIL\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(FAILED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('FAILED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Poll booking D payment failed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{DBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('poll PAYMENT_FAILED',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;const n=Number(pm.environment.get('pollD')||0);if(d.status!=='PAYMENT_FAILED'){pm.expect(n).to.be.below(20);pm.environment.set('pollD',String(n+1));postman.setNextRequest('Poll booking D payment failed')}else pm.environment.unset('pollD');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment D failed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/{{DPaymentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(FAILED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('FAILED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Booking D has no driver",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{DBookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const d=pm.response.json().data;pm.expect(d.status).to.eql(PAYMENT_FAILED);pm.expect(d.driverId||null).to.eql(null);',()=>{pm.response.to.have.status(200);const d=pm.response.json().data;pm.expect(d.status).to.eql('PAYMENT_FAILED');pm.expect(d.driverId||null).to.eql(null);});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Seed paging (TC14)",
+      "item": [
+        {
+          "name": "Customer1 page one",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings?page=1&limit=3"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect(x.pagination.total).to.eql(6);pm.expect(x.pagination.totalPages).to.eql(2);pm.expect(x.data.map(v=>(v.bookingId||v.id).slice(-3))).to.eql([306,305,304]);',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect(x.pagination.total).to.eql(6);pm.expect(x.pagination.totalPages).to.eql(2);pm.expect(x.data.map(v=>(v.bookingId||v.id).slice(-3))).to.eql(['306','305','304']);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer1 completed bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings?status=COMPLETED"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect(x.pagination.total).to.eql(2);pm.expect(x.data.map(v=>(v.bookingId||v.id).slice(-3)).sort()).to.eql([301,302]);',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect(x.pagination.total).to.eql(2);pm.expect(x.data.map(v=>(v.bookingId||v.id).slice(-3)).sort()).to.eql(['301','302']);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer1 cannot see 307",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/00000000-0000-0000-0000-000000000307"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer2 can see 307",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/00000000-0000-0000-0000-000000000307"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 ',()=>{pm.response.to.have.status(200);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Customer2 total one",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customer2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().pagination.total).to.eql(1);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().pagination.total).to.eql(1);});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "item": [
+        {
+          "name": "TC24 Customer response hides credentials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/customers/me",
+            "description": "Inspect encrypted columns separately: docker compose exec auth-db psql -U auth_user -d auth_db -c \"SELECT password_hash,email_enc FROM users LIMIT 1\". Do not publish the output."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const s=JSON.stringify(pm.response.json().data);pm.expect(s).not.to.match(/password|passwordHash|v1:/i);',()=>{pm.response.to.have.status(200);const s=JSON.stringify(pm.response.json().data);pm.expect(s).not.to.match(/password|passwordHash|v1:/i);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC24 Driver response hides credentials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/drivers/00000000-0000-0000-0000-000000000211"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const s=JSON.stringify(pm.response.json().data);pm.expect(s).not.to.match(/password|passwordHash|licenseNumber|v1:/i);',()=>{pm.response.to.have.status(200);const s=JSON.stringify(pm.response.json().data);pm.expect(s).not.to.match(/password|passwordHash|licenseNumber|v1:/i);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC25 SQL injection login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"' OR 1=1 --\",\"password\":\"{{invalidPassword}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('SQLi rejected without SQL details',()=>{pm.expect([400,401]).to.include(pm.response.code);const s=pm.response.text();pm.expect(s).not.to.match(/SELECT|syntax error|stack/i);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC26 Escaped display name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/customers/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"displayName\":\"<script>alert('hack')</script>\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.displayName).to.include(&lt;script&gt;);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.displayName).to.include('&lt;script&gt;');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC27 Tampered role rejected",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tamperedToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/driver-applications"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const token=pm.environment.get('newCustomerToken');const parts=token.split('.');const payload=JSON.parse(Buffer.from(parts[1],'base64').toString());payload.role='ADMIN';const changed=Buffer.from(JSON.stringify(payload)).toString('base64').replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');pm.environment.set('tamperedToken',parts[0]+'.'+changed+'.'+parts[2]);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('401 pm.expect(pm.response.json().error.code).to.eql(INVALID_TOKEN);',()=>{pm.response.to.have.status(401);pm.expect(pm.response.json().error.code).to.eql('INVALID_TOKEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC27 alg none rejected",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{noneToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/driver-applications"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const token=pm.environment.get('newCustomerToken');const p=token.split('.')[1];pm.environment.set('noneToken',btoa(JSON.stringify({alg:'none',typ:'JWT'})).replace(/=/g,'')+'.'+p+'.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('401 pm.expect(pm.response.json().error.code).to.eql(INVALID_TOKEN);',()=>{pm.response.to.have.status(401);pm.expect(pm.response.json().error.code).to.eql('INVALID_TOKEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC28 Customer cannot set driver status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/drivers/me/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"OFFLINE\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});pm.test('no data',()=>pm.expect(pm.response.json()).not.to.have.property('data'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC28 Customer cannot list applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/driver-applications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC28 Driver cannot create booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-driver-blocked"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('403 pm.expect(pm.response.json().error.code).to.eql(FORBIDDEN);',()=>{pm.response.to.have.status(403);pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Count offers before replay",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.environment.set(offersBeforeReplay,String((x.data.items||x.data).length));const s=[pm.environment.get(paymentId),pm.environment.get(providerTxnId),pm.environment.get(fare),SUCCESS].join(|);pm.environment.set(signature,CryptoJS.HmacSHA256(s,pm.environment.get(PAYMENT_CALLBACK_SECRET)).toString(CryptoJS.enc.Hex));',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.environment.set('offersBeforeReplay',String((x.data.items||x.data).length));const s=[pm.environment.get('paymentId'),pm.environment.get('providerTxnId'),pm.environment.get('fare'),'SUCCESS'].join('|');pm.environment.set('signature',CryptoJS.HmacSHA256(s,pm.environment.get('PAYMENT_CALLBACK_SECRET')).toString(CryptoJS.enc.Hex));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Replay booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.776889,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 const d=pm.response.json().data;pm.expect(d.bookingId).to.eql(pm.environment.get(bookingId));pm.expect(d.paymentId).to.eql(pm.environment.get(paymentId));pm.expect(pm.response.headers.get(Idempotent-Replayed)).to.eql(true);',()=>{pm.response.to.have.status(201);const d=pm.response.json().data;pm.expect(d.bookingId).to.eql(pm.environment.get('bookingId'));pm.expect(d.paymentId).to.eql(pm.environment.get('paymentId'));pm.expect(pm.response.headers.get('Idempotent-Replayed')).to.eql('true');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Reuse key with changed body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickup\":{\"lat\":10.762622,\"lng\":106.660172,\"address\":\"postman-pickup\"},\"destination\":{\"lat\":10.78,\"lng\":106.700806,\"address\":\"postman-destination\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('422 pm.expect(pm.response.json().error.code).to.eql(IDEMPOTENCY_KEY_REUSED);',()=>{pm.response.to.have.status(422);pm.expect(pm.response.json().error.code).to.eql('IDEMPOTENCY_KEY_REUSED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Replay success callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/mock/callback",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"paymentId\":\"{{paymentId}}\",\"providerTxnId\":\"{{providerTxnId}}\",\"amount\":{{fare}},\"result\":\"SUCCESS\",\"signature\":\"{{signature}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.replayed).to.eql(true);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.replayed).to.eql(true);});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Count offers after replay",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{driver1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/booking-offers/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 const x=pm.response.json();pm.expect((x.data.items||x.data).length).to.eql(Number(pm.environment.get(offersBeforeReplay)));',()=>{pm.response.to.have.status(200);const x=pm.response.json();pm.expect((x.data.items||x.data).length).to.eql(Number(pm.environment.get('offersBeforeReplay')));});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC30 Booking remains completed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{newCustomerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('200 pm.expect(pm.response.json().data.status).to.eql(COMPLETED);',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().data.status).to.eql('COMPLETED');});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC29 Login rate limit, then health",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"identifier\":\"postman-invalid@example.test\",\"password\":\"{{invalidPassword}}\"}"
+            },
+            "description": "Final request. Newman delay 800ms makes 100 sequential logins exceed the 60s fixed window, so each iteration sends three extra invalid logins. Wait at least 65 seconds before the next full run. Restore RATE_LIMIT_LOGIN_PER_MIN=5 in T36."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const n=Number(pm.environment.get('loginRateCount')||0)+1;pm.environment.set('loginRateCount',String(n));const limit=Number(pm.environment.get('rateLimitLogin')||100);if(pm.response.code===429){pm.test('429 RATE_LIMITED with Retry-After',()=>{pm.expect(pm.response.json().error.code).to.eql('RATE_LIMITED');pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0);});pm.sendRequest(pm.environment.get('baseUrl')+'/health',(e,r)=>{pm.test('health unaffected by limiter',()=>{pm.expect(e).to.eql(null);pm.expect(r.code).to.eql(200);});});postman.setNextRequest(null);}else{pm.test('bad login rejected before limit',()=>pm.expect([400,401]).to.include(pm.response.code));pm.expect(n).to.be.below(limit+2);for(let i=0;i<3;i++)pm.sendRequest({url:pm.environment.get('baseUrl')+'/auth/login',method:'POST',header:{'Content-Type':'application/json'},body:{mode:'raw',raw:JSON.stringify({identifier:'postman-invalid@example.test',password:pm.environment.get('invalidPassword')})}},()=>{});postman.setNextRequest('TC29 Login rate limit, then health');}"
                 ]
               }
             }
