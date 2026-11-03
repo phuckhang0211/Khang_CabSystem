@@ -339,7 +339,7 @@ Package `cab.<service>.v1`; `common.proto` chứa: `Empty`, `Location{lat,lng,ad
 | | GetBooking | {bookingId} → booking (+ `driver` safe info nếu đã gán) | Gateway |
 | | ListBookings | {status?,customerId?,page,limit} → {items,pageInfo} | Gateway |
 | | ListMyOffers | {} → {items[offer + booking info]} (driver theo metadata) | Gateway |
-| | AcceptOffer / RejectOffer | {offerId,reason?} → {bookingId,status} / {offerId,status} | Gateway |
+| | AcceptOffer / RejectOffer | {offerId,reason?} → {bookingId,status,tripId} / {offerId,status} | Gateway |
 | | CancelBooking | {bookingId,reason,confirm} → {bookingId,status} | Gateway |
 | | MarkTripCompleted / MarkTripCanceled | {bookingId[,reason]} → {ok} (xử lý nội bộ khi consume event; khai báo RPC để đủ danh mục) | consumer |
 | **Trip** | GetTrip / GetTripByBooking | {tripId} / {bookingId} → trip | Gateway, Customer |
@@ -348,7 +348,7 @@ Package `cab.<service>.v1`; `common.proto` chứa: `Empty`, `Location{lat,lng,ad
 | | Cancel | {tripId,reason,confirm} → trip | Gateway |
 | **Payment** | CreatePayment | {bookingId,customerId,amount} → {paymentId,paymentUrl,status} | Booking |
 | | GetPayment | {paymentId} → payment | Gateway |
-| | HandleCallback | {paymentId,providerTxnId,amount,result,signature} → {paymentId,status,replayed} | Gateway |
+| | HandleCallback | {paymentId,amount,result} → {paymentId,status,replayed} | Gateway |
 | **Notify** | ListNotifications | {unread?,page,limit} → {items,pageInfo} | Gateway |
 | | MarkRead / MarkAllRead | {notificationId} / {} → {ok} | Gateway |
 
@@ -707,11 +707,11 @@ Matching: `Driver.SearchNearbyDrivers{pickup, radiusKm=MATCH_RADIUS_KM, workStat
 
 ### 8.5 Payment Service (chỉ MOCK)
 - **CreatePayment{bookingId,customerId,amount}** (chỉ gọi nội bộ): `amount > 0`; nếu đã có payment cho `booking_id` → trả bản cũ (idempotent). Tạo `payments(PENDING, provider=MOCK, currency=VND)`, `payment_url = "mock://pay/{paymentId}"`. Trả `{paymentId, paymentUrl, status}`.
-- **HandleCallback{paymentId,providerTxnId,amount,result(SUCCESS|FAIL),signature}** (endpoint public, bảo vệ bằng HMAC):
-  1. Nếu `PAYMENT_SKIP_SIGNATURE != true`: `expected = HMAC_SHA256_hex(PAYMENT_CALLBACK_SECRET, "{paymentId}|{providerTxnId}|{amount}|{result}")`, so sánh **constant-time** (`crypto.timingSafeEqual`); sai → 400 `INVALID_SIGNATURE`, **không đổi state, không publish**. Nếu `=true` thì bỏ qua kiểm tra (chỉ demo local).
+- **HandleCallback{paymentId,amount,result(SUCCESS|FAIL)}** (endpoint public, mock đơn giản):
+  1. Hệ thống tự sinh `providerTxnId = "MOCK-" + paymentId`; client không cần gửi mã giao dịch hoặc chữ ký.
   2. Payment không tồn tại → 404.
-  3. `status != PENDING`: nếu `provider_txn_id == providerTxnId` → trả kết quả cũ `{status, replayed:true}` **không publish lần hai**; khác txn → 409 `STATE_CONFLICT`.
-  4. `amount != payments.amount` → 400 `INVALID_AMOUNT`. `providerTxnId` đã dùng cho payment khác → 409.
+  3. `status != PENDING`: nếu `provider_txn_id == "MOCK-" + paymentId` → trả kết quả cũ `{status, replayed:true}` **không publish lần hai**.
+  4. `amount != payments.amount` → 400 `INVALID_AMOUNT`.
   5. `UPDATE ... WHERE id AND status='PENDING'`: SUCCESS → `COMPLETED`, `paid_at`, lưu `provider_txn_id`; FAIL → `FAILED`, `failed_at`, `failure_code='MOCK_PAYMENT_FAILED'`. (0 dòng → đọc lại và xử lý như replay.) Sau commit publish `payment.completed{paymentId,bookingId,customerId,amount,paidAt}` hoặc `payment.failed{paymentId,bookingId,customerId,failureCode}`.
 - **GetPayment**: Customer chỉ xem payment của mình (`customer_id == x-user-id`), Admin xem tất cả; còn lại 403.
 
@@ -790,7 +790,7 @@ Entry point REST duy nhất; verify JWT; RBAC theo endpoint; rate limit; sinh `x
 | PUT | /trips/:id/location | DRIVER(assigned) | Trip.UpdateTripLocation | body `{lat,lng}` |
 | POST | /trips/:id/complete | DRIVER(assigned) | Trip.Complete | |
 | POST | /trips/:id/cancel | CUSTOMER/DRIVER(participant) | Trip.Cancel | body `{reason,confirm}`; ADMIN → 403 |
-| POST | /payments/mock/callback | Public (bảo vệ HMAC) | Payment.HandleCallback | body `{paymentId,providerTxnId,amount,result,signature}`; 400 `INVALID_SIGNATURE`/`INVALID_AMOUNT`, 404 |
+| POST | /payments/mock/callback | Public | Payment.HandleCallback | body `{paymentId,amount,result}`; 400 `INVALID_AMOUNT`, 404 |
 | GET | /payments/:id | CUSTOMER(own), ADMIN | Payment.GetPayment | |
 | POST | /reviews | CUSTOMER | Customer.CreateReview | body `{tripId,rating,comment?}` |
 | GET | /reviews?tripId= | Mọi user đăng nhập | Customer.ListReviews | thiếu `tripId` → 400 |
@@ -826,7 +826,7 @@ Callback FAIL → Payment `FAILED` → Booking `PAYMENT_FAILED`, **không** có 
 |---|---|
 | `Payment.CreatePayment` lỗi | Booking→PAYMENT_FAILED, 503 `PAYMENT_SERVICE_UNAVAILABLE`, không matching |
 | Callback FAIL | Payment FAILED, Booking PAYMENT_FAILED, không offer |
-| Callback lặp (cùng providerTxnId) | trả kết quả cũ, không publish lần hai |
+| Callback lặp (cùng paymentId và result) | trả kết quả cũ, không publish lần hai |
 | Chữ ký sai | 400 `INVALID_SIGNATURE`; Payment vẫn PENDING, Booking vẫn PAYMENT_PENDING, không offer |
 | Không có driver phù hợp | Booking→NO_DRIVER_FOUND ngay |
 | Offer hết hạn khi accept | 410 `OFFER_EXPIRED` (không worker nền) |
@@ -857,7 +857,7 @@ Callback FAIL → Payment `FAILED` → Booking `PAYMENT_FAILED`, **không** có 
 - **BR15** Trip luôn `payment_status=PAID`; không thu tiền sau Trip; không tính lại fare.
 - **BR16** Cancel Booking chỉ ở PAYMENT_PENDING/SEARCHING_DRIVER; không refund.
 - **BR17** Trip cancel chỉ trước IN_PROGRESS; `canceled_by` ∈ CUSTOMER|DRIVER.
-- **BR18/19** Provider chỉ MOCK; HMAC-SHA256; amount khớp; `providerTxnId` unique; callback lặp không publish lần hai.
+- **BR18/19** Provider chỉ MOCK; amount phải khớp; mã giao dịch mock được sinh ổn định; callback lặp không publish lần hai.
 - **BR20** Review chỉ cho Trip COMPLETED, đúng customer, unique (trip, customer).
 - **BR21** Không service nào query DB service khác. **BR22** Publish sau COMMIT; consumer kiểm tra state hiện tại.
 - **BR23** Không refund, phí, timeout payment, worker nền, refresh token, outbox, processed_events, DLQ, retry, circuit breaker, mTLS, WebSocket.
@@ -879,9 +879,10 @@ Chạy từ host: `node scripts/seed.js` **sau khi** khởi động bằng `dock
 | Driver 3 | driver3@example.test | Driver@123 | 203 | 213 | APPROVED, ONLINE, **BUSY** |
 | Driver 4 | driver4@example.test | Driver@123 | 204 | 214 | APPROVED, **OFFLINE** |
 | Driver 5 | driver5@example.test | Driver@123 | 205 | 215 | APPROVED, ONLINE, AVAILABLE (2-3 km) |
-| Driver 6 | driver6@example.test | Driver@123 | 206 | 216 | PENDING_REVIEW (account PENDING), **chưa có location** |
+| Driver 6 | driver6@example.test | Driver@123 | 206 | 216 | APPROVED, **OFFLINE, BUSY** (gần Customer 1) |
+| Driver 7 | driver7@example.test | Driver@123 | 207 | 217 | PENDING_REVIEW (account PENDING), **chưa có location** |
 
-Mỗi driver có 1 `vehicles` (id 801..806) và 1 `driver_applications` (id 901..906; 1-5 `APPROVED`, 6 `PENDING_REVIEW`), biển số/GPLX giả khác nhau.
+Mỗi driver có 1 `vehicles` (id 801..807) và 1 `driver_applications` (id 901..907; 1-6 `APPROVED`, 7 `PENDING_REVIEW`), biển số/GPLX giả khác nhau.
 
 ### 12.2 Vị trí tài xế (Redis, không TTL) — gốc `SEED_BASE_LAT=10.762622`, `SEED_BASE_LNG=106.660172`
 | Driver | Lệch so với gốc | ≈ Khoảng cách | Redis state |
@@ -891,9 +892,10 @@ Mỗi driver có 1 `vehicles` (id 801..806) và 1 `driver_applications` (id 901.
 | 3 (213) | lat −0.004 | 0.45 km | ONLINE / BUSY |
 | 4 (214) | lat +0.004, lng +0.004 | 0.62 km | OFFLINE / AVAILABLE |
 | 5 (215) | lat +0.022 | 2.45 km | ONLINE / AVAILABLE |
-| 6 (216) | (không có) | - | không có GEO |
+| 6 (216) | lat +0.002, lng +0.002 | 0.31 km | OFFLINE / BUSY |
+| 7 (217) | (không có) | - | không có GEO |
 
-Kết quả matching mong đợi (`MATCH_RADIUS_KM=3`): Driver 1, 2, 5 nhận offer (đúng `MATCH_MAX_OFFERS=3`); Driver 3 (BUSY), 4 (OFFLINE), 6 (không location) không nhận.
+Kết quả matching mong đợi (`MATCH_RADIUS_KM=3`): Driver 1, 2, 5 nhận offer (đúng `MATCH_MAX_OFFERS=3`); Driver 3 (BUSY), 4 (OFFLINE), 6 (OFFLINE/BUSY), 7 (PENDING_REVIEW, không location) không nhận.
 
 ### 12.3 Booking/Payment/Trip/Review lịch sử
 | STT | booking_id (XXX) | customer | pickup → destination | km | fare | status | driver | payment (XXX / status) | trip (XXX / status) | created_at |
@@ -926,7 +928,7 @@ Kết quả matching mong đợi (`MATCH_RADIUS_KM=3`): Driver 1, 2, 5 nhận of
 | TC27 JWT tampering | HS256 whitelist, kiểm `exp`, từ chối `alg=none`; sửa payload (sub/role) giữ signature cũ → 401 `INVALID_TOKEN`. |
 | TC28 Unauthorized | RBAC ở Gateway + ownership ở service. Customer gọi `PUT /drivers/me/status` → 403 `FORBIDDEN`, không có data. |
 | TC29 Rate limit | §9.3. Spam → 429 `RATE_LIMITED` + `Retry-After`; sau đó `GET /health` vẫn 200. |
-| TC30 Replay/Idempotency | `Idempotency-Key` ở `POST /bookings` (cùng key+body → cùng bookingId/paymentId + `Idempotent-Replayed: true`; khác body → 422). Callback lặp cùng `providerTxnId` không publish lần hai; chữ ký sai → 400 và Payment vẫn PENDING. |
+| TC30 Replay/Idempotency | `Idempotency-Key` ở `POST /bookings` (cùng key+body → cùng bookingId/paymentId + `Idempotent-Replayed: true`; khác body → 422). Callback lặp cùng `paymentId` không publish lần hai. |
 
 Khác: service gRPC kiểm `x-service-token`; không lộ stack trace; không log secret/PII; `.env` không commit.
 
@@ -938,14 +940,7 @@ Khác: service gRPC kiểm `x-service-token`; không lộ stack trace; không lo
 - `postman/CABSYSTEM_API.postman_collection.json` + `CABSYSTEM_API.postman_environment.json`.
 - Biến environment: `baseUrl=http://localhost:3000/api/v1`, `PAYMENT_CALLBACK_SECRET`, `adminToken`, `customerToken`, `customer2Token`, `driver1Token`, `driver2Token`, `bookingId`, `paymentId`, `fare`, `offerId`, `tripId`, `idemKey`...
 - Mỗi request có script `pm.test` kiểm status/field chính và lưu id vào biến. Thứ tự folder: Health → Auth/Customer → Driver onboarding/Admin → Driver status/location/nearby → Booking+Payment → Offer/Accept → Trip → Review → Cancel → Payment FAIL → Seed paging (TC14) → Security (TC24-30).
-- Callback mock (`PAYMENT_SKIP_SIGNATURE=false`) dùng Pre-request Script:
-```js
-const b = JSON.parse(pm.request.body.raw);
-const s = `${b.paymentId}|${b.providerTxnId}|${b.amount}|${b.result}`;
-const key = pm.environment.get("PAYMENT_CALLBACK_SECRET");
-pm.variables.set("signature", CryptoJS.HmacSHA256(s, key).toString(CryptoJS.enc.Hex));
-```
-  Body callback đặt `"signature":"{{signature}}"`. Chỉ demo nhanh local mới đặt `PAYMENT_SKIP_SIGNATURE=true` và gửi `"signature":"demo"`.
+- Callback mock chỉ cần body `{ "paymentId": "...", "amount": 12000, "result": "SUCCESS" }`; hệ thống tự sinh mã giao dịch mock.
 - Lưu ý rate limit khi chạy Runner: login giới hạn 5/phút/IP và mặc định 100 req/phút/IP → thêm delay giữa request (≥ 700 ms; login cách nhau ≥ 12 s) hoặc tạm tăng giá trị trong `.env` khi chạy full collection, rồi trả về mặc định khi test TC29. README ghi rõ điều này.
 
 ### 14.2 `huong-dan-test/TCxx.md`
@@ -969,7 +964,7 @@ Mỗi file (TC01...TC30) gồm: **Mục tiêu**, **Điều kiện trước** (se
 | 13 | Nearby drivers | GET /drivers/nearby?radiusKm=1 | Driver 1-4 trong 1 km, có `distanceMeters` tăng dần, paging/limit đúng |
 | 14 | List Booking | GET /bookings?status&page&limit | Customer1 total=6; page limit=3 → totalPages=2; COMPLETED=2; xem 307 → 403 |
 | 15 | Đặt xe | POST /bookings + callback | PAYMENT_PENDING → (callback SUCCESS) → SEARCHING_DRIVER + offers |
-| 16 | Driver nhận chuyến | notifications → offers → accept | BOOKING_OFFER → accept → DRIVER_ASSIGNED; sau đó mới có Trip |
+| 16 | Driver nhận chuyến | notifications → offers → accept | BOOKING_OFFER → accept → DRIVER_ASSIGNED; response accept trả `tripId`, Trip được tạo bất đồng bộ |
 | 17 | Trip lifecycle | arrive → start → location → complete | Đúng trình tự; `payment_status=PAID`; vị trí cuối lưu |
 | 18 | Hủy chuyến | /bookings/:id/cancel, /trips/:id/cancel | CANCELED; driver release; 2 bên có notification; không refund |
 | 19 | Thanh toán giả lập | POST /payments/mock/callback | PENDING→COMPLETED; Booking bắt đầu matching; chữ ký sai 400 |
@@ -995,7 +990,7 @@ Mỗi file (TC01...TC30) gồm: **Mục tiêu**, **Điều kiện trước** (se
 3. Auth + Gateway: register/login/JWT/OTP, RBAC, rate limit, health.
 4. Customer: profile + reviews.
 5. Driver: application/approval/status/location/nearby + `TryAssignDriver`/`ReleaseDriver`.
-6. Payment: `CreatePayment`, `GetPayment`, `HandleCallback` (HMAC, `providerTxnId` unique, events).
+6. Payment: `CreatePayment`, `GetPayment`, `HandleCallback` (mock callback tối giản, events).
 7. Booking: idempotency, Haversine×5000, PAYMENT_PENDING, gọi Payment, consume payment events, matching + offers + accept/reject/cancel.
 8. Notify: consume events → notifications.
 9. Trip: consume `booking.assigned`, lifecycle, cancel.

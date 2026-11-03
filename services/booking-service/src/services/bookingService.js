@@ -362,9 +362,11 @@ async function acceptOffer({ offerId }, caller) {
     );
     paidAt = p.paidAt || "";
   } catch (_) {}
+  const tripId = crypto.randomUUID();
   await publish(
     "booking.assigned",
     {
+      tripId,
       bookingId: result.booking.id,
       customerId: result.booking.customer_id,
       driverId: d.driverId,
@@ -387,7 +389,7 @@ async function acceptOffer({ offerId }, caller) {
     },
     { correlationId: caller.correlationId, aggregateId: result.booking.id },
   );
-  return { bookingId: result.booking.id, status: "DRIVER_ASSIGNED" };
+  return { bookingId: result.booking.id, status: "DRIVER_ASSIGNED", tripId };
 }
 async function rejectOffer({ offerId, reason }, caller) {
   if (!isUuid(offerId))

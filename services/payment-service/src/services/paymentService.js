@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const grpc = require('@grpc/grpc-js');
-const config = require('../config');
 const repo = require('../repositories/paymentRepo');
 const { publish } = require('../events/rabbit');
 const { makeError } = require('../utils/errors');
@@ -13,14 +12,6 @@ const notFound = () => makeError(grpc.status.NOT_FOUND, 'NOT_FOUND', 'Payment no
 function validAmount(amount) { return Number.isSafeInteger(amount) && amount > 0; }
 function response(row) { return { paymentId: row.id, paymentUrl: row.payment_url, status: row.status }; }
 function payment(row) { return { paymentId: row.id, bookingId: row.booking_id, customerId: row.customer_id, amount: Number(row.amount), status: row.status, providerTxnId: row.provider_txn_id || '', paidAt: row.paid_at ? new Date(row.paid_at).toISOString() : '' }; }
-function verifySignature({ paymentId, providerTxnId, amount, result, signature }) {
-  if (config.paymentSkipSignature) return true;
-  const expected = crypto.createHmac('sha256', config.paymentCallbackSecret).update(`${paymentId}|${providerTxnId}|${amount}|${result}`).digest('hex');
-  const expectedBuffer = Buffer.from(expected, 'utf8');
-  const actualBuffer = Buffer.from(signature, 'utf8');
-  return expectedBuffer.length === actualBuffer.length && crypto.timingSafeEqual(expectedBuffer, actualBuffer);
-}
-
 async function createPayment({ bookingId, customerId, amount }) {
   if (!isUuid(bookingId) || !isUuid(customerId) || !validAmount(amount)) throw invalid('VALIDATION_ERROR', 'Invalid payment input');
   const paymentId = crypto.randomUUID();
@@ -39,9 +30,9 @@ async function getPayment({ paymentId }, caller) {
 }
 
 async function handleCallback(input, correlationId) {
-  const { paymentId, providerTxnId, amount, result, signature } = input;
-  if (!isUuid(paymentId) || typeof providerTxnId !== 'string' || !providerTxnId || providerTxnId.length > 120 || !validAmount(amount) || !['SUCCESS', 'FAIL'].includes(result) || typeof signature !== 'string') throw invalid('VALIDATION_ERROR', 'Invalid callback input');
-  if (!verifySignature(input)) throw invalid('INVALID_SIGNATURE', 'Invalid signature');
+  const { paymentId, amount, result } = input;
+  const providerTxnId = `MOCK-${paymentId}`;
+  if (!isUuid(paymentId) || !validAmount(amount) || !['SUCCESS', 'FAIL'].includes(result)) throw invalid('VALIDATION_ERROR', 'Invalid callback input');
   let transaction;
   try {
     transaction = await repo.beginCallback(paymentId);

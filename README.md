@@ -2,7 +2,7 @@
 
 ## Seed dữ liệu demo
 
-Sau khi khởi động bằng `docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d --build`, chạy `node scripts/seed.js` từ host. Seed có thể chạy lại: 9 tài khoản, 2 Customer, 6 Driver, 7 Booking (301–307), 7 Payment (401–407), 4 Trip (501/502/503/507), 4 offer ACCEPTED (701–704) và 1 Review (601). TC14 phải chạy trước khi tạo Booking mới cho Customer 1 để giữ `total=6`, `totalPages=2` khi `limit=3`.
+Sau khi khởi động bằng `docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d --build`, chạy `node scripts/seed.js` từ host. Seed có thể chạy lại: 10 tài khoản, 2 Customer, 7 Driver, 7 Booking (301–307), 7 Payment (401–407), 4 Trip (501/502/503/507), 4 offer ACCEPTED (701–704) và 1 Review (601). Driver 6 (user 206, driver 216) ở gần Customer 1 với trạng thái `OFFLINE/BUSY`; Driver 7 vẫn là hồ sơ `PENDING_REVIEW`. Mock payment callback chỉ cần `paymentId`, `amount`, `result`; hệ thống tự sinh mã giao dịch mock. TC14 phải chạy trước khi tạo Booking mới cho Customer 1 để giữ `total=6`, `totalPages=2` khi `limit=3`.
 
 Baseline sau T29: bookings=7, booking_offers=4, payments=7, trips=4, reviews=1, customer_profiles=2; notifications và idempotency_keys=0. Khi dọn flow kiểm thử, chỉ xóa các ID được tạo thêm rồi chạy lại seed; giữ các ID lịch sử trên.
 

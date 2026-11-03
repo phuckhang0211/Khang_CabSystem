@@ -77,6 +77,12 @@ function createDriverController(clients) {
         const driver = await clients.driver.call('getDriver', { driverId: req.params.id }, metadata(req));
         return sendData(res, safeDriver(driver));
       } catch (error) { return next(error); }
+    },
+    getMe: async (req, res, next) => {
+      try {
+        const driver = await clients.driver.call('getDriver', { userId: req.user.id }, metadata(req));
+        return sendData(res, safeDriver(driver));
+      } catch (error) { return next(error); }
     }
   };
 }

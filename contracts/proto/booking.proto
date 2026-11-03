@@ -26,7 +26,7 @@ message ListBookingsResponse { repeated Booking items = 1; cab.common.v1.PageInf
 message BookingOffer { string offer_id = 1; cab.common.v1.OfferStatus status = 2; Booking booking = 3; }
 message ListMyOffersResponse { repeated BookingOffer items = 1; }
 message AcceptOfferRequest { string offer_id = 1; optional string reason = 2; }
-message AcceptOfferResponse { string booking_id = 1; cab.common.v1.BookingStatus status = 2; }
+message AcceptOfferResponse { string booking_id = 1; cab.common.v1.BookingStatus status = 2; string trip_id = 3; }
 message RejectOfferRequest { string offer_id = 1; optional string reason = 2; }
 message RejectOfferResponse { string offer_id = 1; cab.common.v1.OfferStatus status = 2; }
 message CancelBookingRequest { string booking_id = 1; string reason = 2; bool confirm = 3; }

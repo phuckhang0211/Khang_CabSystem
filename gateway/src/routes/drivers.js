@@ -11,6 +11,7 @@ function createDriverRouter(clients) {
   const controller = createDriverController(clients);
 
   router.post('/applications', authenticateOnboarding, validate(schemas.submitApplicationSchema), controller.submitApplication);
+  router.get('/me', authenticate, allow('DRIVER'), controller.getMe);
   router.put('/me/status', authenticate, allow('DRIVER'), validate(schemas.workStatusSchema), controller.setWorkStatus);
   router.put('/me/location', authenticate, allow('DRIVER'), validate(schemas.locationSchema), controller.updateLocation);
   router.get('/nearby', authenticate, validate(schemas.nearbyDriversSchema, 'query'), controller.searchNearby);
