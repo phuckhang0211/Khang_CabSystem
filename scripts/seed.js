@@ -39,13 +39,13 @@ const users = [
     "CUSTOMER",
     "ACTIVE",
   ],
-  ...Array.from({ length: 6 }, (_, i) => [
+  ...Array.from({ length: 7 }, (_, i) => [
     String(201 + i),
     `driver${i + 1}@example.test`,
     `+8490000020${i + 1}`,
     "Driver@123",
     "DRIVER",
-    i === 5 ? "PENDING" : "ACTIVE",
+    i === 6 ? "PENDING" : "ACTIVE",
   ]),
 ];
 async function seedAuth() {
@@ -92,12 +92,12 @@ async function seedDriver() {
   const c = db("DRIVER");
   await c.connect();
   try {
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 7; i++) {
       const d = id(210 + i),
         u = id(200 + i),
         v = id(800 + i),
         a = id(900 + i),
-        approved = i < 6,
+        approved = i < 7,
         plate = `51A-${10000 + i}`,
         license = `GPLX-${10000 + i}`;
       await c.query(
@@ -150,6 +150,7 @@ async function seedRedis() {
       [3, -0.004, 0, "ONLINE", "BUSY"],
       [4, 0.004, 0.004, "OFFLINE", "AVAILABLE"],
       [5, 0.022, 0, "ONLINE", "AVAILABLE"],
+      [6, 0.002, 0.002, "OFFLINE", "BUSY"],
     ];
   try {
     for (const [n, dy, dx, w, a] of p) {
@@ -169,9 +170,9 @@ async function seedRedis() {
         new Date().toISOString(),
       );
     }
-    const six = id(216);
-    await r.del(`driver:${six}:state`, `driver:${six}:location`);
-    await r.zrem("drivers:geo", six);
+    const pending = id(217);
+    await r.del(`driver:${pending}:state`, `driver:${pending}:location`);
+    await r.zrem("drivers:geo", pending);
   } finally {
     await r.quit();
   }
@@ -236,16 +237,17 @@ async function seedTrip() {
     for (const [n, customer, destLat, destLng, , fare, , driver, hour] of history.filter((row) => [301, 302, 303, 307].includes(row[0]))) {
       const canceled = n === 303;
       await c.query(
-        `INSERT INTO trips(id,booking_id,customer_id,driver_id,vehicle_id,payment_id,fare,status,payment_status,paid_at,last_lat,last_lng,location_updated_at,end_lat,end_lng,arrived_at,started_at,completed_at,canceled_at,canceled_by,cancel_reason,created_at,updated_at)
-         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
-         ON CONFLICT(id) DO UPDATE SET booking_id=EXCLUDED.booking_id,customer_id=EXCLUDED.customer_id,driver_id=EXCLUDED.driver_id,vehicle_id=EXCLUDED.vehicle_id,payment_id=EXCLUDED.payment_id,fare=EXCLUDED.fare,status=EXCLUDED.status,payment_status=EXCLUDED.payment_status,paid_at=EXCLUDED.paid_at,last_lat=EXCLUDED.last_lat,last_lng=EXCLUDED.last_lng,location_updated_at=EXCLUDED.location_updated_at,end_lat=EXCLUDED.end_lat,end_lng=EXCLUDED.end_lng,arrived_at=EXCLUDED.arrived_at,started_at=EXCLUDED.started_at,completed_at=EXCLUDED.completed_at,canceled_at=EXCLUDED.canceled_at,canceled_by=EXCLUDED.canceled_by,cancel_reason=EXCLUDED.cancel_reason,created_at=EXCLUDED.created_at,updated_at=EXCLUDED.updated_at`,
+        `INSERT INTO trips(id,booking_id,customer_id,driver_id,vehicle_id,payment_id,fare,status,payment_status,paid_at,last_lat,last_lng,location_updated_at,end_lat,end_lng,arrived_at,started_at,completed_at,canceled_at,canceled_by,cancel_reason,created_at,updated_at,pickup_lat,pickup_lng,pickup_address,dest_lat,dest_lng,dest_address)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
+         ON CONFLICT(id) DO UPDATE SET booking_id=EXCLUDED.booking_id,customer_id=EXCLUDED.customer_id,driver_id=EXCLUDED.driver_id,vehicle_id=EXCLUDED.vehicle_id,payment_id=EXCLUDED.payment_id,fare=EXCLUDED.fare,status=EXCLUDED.status,payment_status=EXCLUDED.payment_status,paid_at=EXCLUDED.paid_at,last_lat=EXCLUDED.last_lat,last_lng=EXCLUDED.last_lng,location_updated_at=EXCLUDED.location_updated_at,end_lat=EXCLUDED.end_lat,end_lng=EXCLUDED.end_lng,arrived_at=EXCLUDED.arrived_at,started_at=EXCLUDED.started_at,completed_at=EXCLUDED.completed_at,canceled_at=EXCLUDED.canceled_at,canceled_by=EXCLUDED.canceled_by,cancel_reason=EXCLUDED.cancel_reason,created_at=EXCLUDED.created_at,updated_at=EXCLUDED.updated_at,pickup_lat=EXCLUDED.pickup_lat,pickup_lng=EXCLUDED.pickup_lng,pickup_address=EXCLUDED.pickup_address,dest_lat=EXCLUDED.dest_lat,dest_lng=EXCLUDED.dest_lng,dest_address=EXCLUDED.dest_address`,
         [id(n + 200), id(n), id(customer), id(driver), id(driver + 590), id(n + 100), fare,
           canceled ? "CANCELED" : "COMPLETED", "PAID", at(hour, 5),
           canceled ? null : destLat, canceled ? null : destLng, canceled ? null : at(hour, 40),
           canceled ? null : destLat, canceled ? null : destLng, at(hour, 20),
           canceled ? null : at(hour, 30), canceled ? null : at(hour, 50),
           canceled ? at(hour, 30) : null, canceled ? "CUSTOMER" : null,
-          canceled ? "Khách thay đổi kế hoạch" : null, at(hour, 10), at(hour, 50)],
+          canceled ? "Khách thay đổi kế hoạch" : null, at(hour, 10), at(hour, 50),
+          10.7626, 106.6602, null, destLat, destLng, null],
       );
     }
   } finally {
@@ -294,7 +296,7 @@ async function main() {
   await seedTrip();
   await seedOffer();
   await seedReview();
-  console.log("Seed complete: auth=9 customer=2 driver=6 booking=7 payment=7 trip=4 offer=4 review=1 redis=5");
+  console.log("Seed complete: auth=10 customer=2 driver=7 booking=7 payment=7 trip=4 offer=4 review=1 redis=6");
 }
 if (require.main === module)
   main().catch((e) => {
