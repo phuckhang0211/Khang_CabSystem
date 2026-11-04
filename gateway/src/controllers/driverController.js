@@ -36,12 +36,16 @@ function safeDriver(driver) {
 function createDriverController(clients) {
   return {
     submitApplication: async (req, res, next) => {
-      const normalizePhone = (value) => value.replace(/[\s-]/g, '');
-      if (normalizePhone(req.body.phone) !== normalizePhone(req.onboarding.phone)) {
-        return sendError(res, req, 400, 'VALIDATION_ERROR', 'Validation failed');
-      }
+      const phone = req.onboarding.phone.replace(/[\s-]/g, '');
+      const vehicle = {
+        plateNumber: `DEMO-${phone.replace(/^\+/, '').slice(-8)}`,
+        vehicleType: 'CAR',
+        brand: 'Demo',
+        model: 'Demo',
+        color: 'Black'
+      };
       try {
-        return sendData(res, await clients.driver.call('submitApplication', req.body, metadata(req)), 201);
+        return sendData(res, await clients.driver.call('submitApplication', { ...req.body, phone, vehicle }, metadata(req)), 201);
       } catch (error) { return next(error); }
     },
     listApplications: async (req, res, next) => {

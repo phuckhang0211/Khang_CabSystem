@@ -8,20 +8,11 @@ const availabilityStatuses = ['AVAILABLE', 'BUSY'];
 
 const driverIdParamsSchema = z.object({ id: z.string().refine(isUuid) });
 const applicationIdParamsSchema = z.object({ id: z.string().refine(isUuid) });
-const vehicleSchema = z.object({
-  plateNumber: z.string(),
-  vehicleType: z.string(),
-  brand: z.string().optional(),
-  model: z.string().optional(),
-  color: z.string().optional()
-});
 const submitApplicationSchema = z.object({
   email: z.string(),
   password: z.string(),
-  phone: z.string(),
   fullName: z.string(),
-  licenseNumber: z.string(),
-  vehicle: vehicleSchema
+  licenseNumber: z.string()
 });
 const applicationListSchema = paginationSchema.extend({
   status: z.enum(verificationStatuses).optional()

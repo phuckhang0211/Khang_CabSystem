@@ -161,10 +161,6 @@ async function accept(offerId, driverId) {
       await client.query("ROLLBACK");
       return { kind: "CONFLICT" };
     }
-    if (new Date(row.expires_at) <= new Date()) {
-      await client.query("ROLLBACK");
-      return { kind: "EXPIRED" };
-    }
     const updated = await client.query(
       "UPDATE bookings SET status='DRIVER_ASSIGNED',driver_id=$2,assigned_at=now(),updated_at=now() WHERE id=$1 AND status='SEARCHING_DRIVER' RETURNING *",
       [row.id, driverId],

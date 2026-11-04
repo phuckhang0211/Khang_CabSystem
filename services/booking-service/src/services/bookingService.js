@@ -288,12 +288,6 @@ async function acceptOffer({ offerId }, caller) {
     throw err(grpc.status.PERMISSION_DENIED, "FORBIDDEN", "Access denied");
   if (offer.offer_status !== "PENDING" || offer.status !== "SEARCHING_DRIVER")
     throw err(grpc.status.ABORTED, "STATE_CONFLICT", "Offer state conflict");
-  if (new Date(offer.expires_at) <= new Date())
-    throw err(
-      grpc.status.FAILED_PRECONDITION,
-      "OFFER_EXPIRED",
-      "Offer expired",
-    );
   let assigned;
   try {
     assigned = await driver.tryAssignDriver(
@@ -332,12 +326,6 @@ async function acceptOffer({ offerId }, caller) {
         caller.correlationId,
       )
       .catch(() => {});
-    if (result.kind === "EXPIRED")
-      throw err(
-        grpc.status.FAILED_PRECONDITION,
-        "OFFER_EXPIRED",
-        "Offer expired",
-      );
     if (result.kind === "NOT_FOUND")
       throw err(grpc.status.NOT_FOUND, "NOT_FOUND", "Offer not found");
     if (result.kind === "FORBIDDEN")
